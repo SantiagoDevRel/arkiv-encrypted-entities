@@ -23,7 +23,7 @@ function clearQuery(mode: QueryMode) {
   delete responses[mode];
   el(mode === 'public' ? 'public-result' : 'read-network-result').hidden = true;
   for (const suffix of ['attributes', 'payload', 'entity', 'bytes']) el(`${mode}-${suffix}`).textContent = '';
-  if (mode === 'read') { el('read-result').hidden = true; el('plaintext').textContent = ''; }
+  if (mode === 'read') { el('read-result').hidden = true; el('read-locked').hidden = false; el('plaintext').textContent = ''; }
   if (responses.public === undefined && responses.read === undefined) el('explorer-result').hidden = true;
   compare();
 }
@@ -141,7 +141,7 @@ el('write-form').addEventListener('submit', event => {
     el('created-entity').hidden = false;
     el<HTMLAnchorElement>('transaction').href = `${EXPLORER_URL}/tx/${created.txHash}`;
     el('write-result').hidden = false;
-    status('write-status', 'Stored. Keep the entity ID and key, then compare both queries below.', 'success');
+    status('write-status', 'Stored.', 'success');
     status('read-status', epoch === sessionEpoch ? 'The key from this write is filled in. Query to decrypt.' : 'The wallet session changed. Restore your key privately to decrypt.');
   });
 });
@@ -178,7 +178,7 @@ function query(mode: QueryMode) {
     let text: string;
     try { text = new TextDecoder('utf-8', { fatal: true }).decode(recovered); }
     catch { throw new UserError('The payload authenticated, but is not UTF-8 text. Use the package API for binary data.'); }
-    el('plaintext').textContent = text || '(Empty note)'; el('read-result').hidden = false;
+    el('plaintext').textContent = text || '(Empty note)'; el('read-result').hidden = false; el('read-locked').hidden = true;
     compare();
     status('read-status', same ? 'Decrypted locally. Matches your note exactly.' : 'Decrypted locally. Payload verified.', 'success');
   });

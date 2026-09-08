@@ -51,12 +51,15 @@ Use the same Entity ID for both buttons. To inspect after reload, paste the ID a
 
 The public query works even if the decryption-key field is empty or invalid. The keyed query validates key format before requesting data; an incorrect well-formed key can still retrieve ciphertext, but authentication fails and no plaintext is shown. A successful same-tab roundtrip reports a byte-for-byte match. If the entity changed between queries, the comparison tells you to run both again instead of claiming the responses match.
 
-Both result panels show:
+The main comparison shows **Encrypted message** on the left (the complete ciphertext) and **Decrypted message** on the right (the original text after local authentication). The result boxes align on desktop and stack on smaller screens. A wrong key shows **No readable message** and clears any previous plaintext.
+
+Open **Network response** beneath either result for the technical data:
 
 - **Public attributes:** actual SDK typed attributes. This sample writes only `app = encrypted-entities-sample`; it never writes the note or encryption key into an attribute.
-- **Encrypted payload:** the complete envelope as hexadecimal, with its actual byte count. This is where the encrypted message is stored. Long payloads scroll; they are not shortened or replaced by invented text.
+- **Encrypted payload:** the keyed panel's network response still contains the same encrypted bytes shown in the public result, with the actual byte count. Long payloads scroll; they are not shortened or replaced by invented text.
 - **Full public entity · SDK fields:** expandable ID, owner, content type, attributes, payload and block metadata. This is a JSON presentation of decoded SDK fields; it is not claimed to be the raw JSON-RPC wire response. Big integers are displayed as decimal strings.
-- **Message:** only in the keyed panel, after successful local authentication. This value is not part of the network response and is not sent back to Arkiv.
+
+The decrypted text is not part of the network response and is not sent back to Arkiv.
 
 The current Tiramisu entity explorer shows a summary, payload size and history; it does not display the complete payload in its entity overview. The sample therefore fetches and displays those bytes directly. The explorer never receives your encryption key.
 
@@ -82,9 +85,9 @@ Reference created with **Claude Design**, using the selected **Arkiv Design Syst
 | --- | --- | --- |
 | Page title | Space Grotesk | 32px / 500 / 1.1 |
 | Section title | Space Grotesk | 24px / 500 / 1.1 |
-| Body, input labels, inputs/buttons, decrypted text | IBM Plex Mono | 16px / 400 / 1.5 |
+| Body, input labels, inputs/buttons, encrypted/decrypted message | IBM Plex Mono | 16px / 400 / 1.5 |
 | Data labels | IBM Plex Mono | 16px / 500 / 1.5 |
-| Help, statuses, footer, payload/code | IBM Plex Mono | 14px / 400 / 1.5 |
+| Help, statuses, footer, network response/code | IBM Plex Mono | 14px / 400 / 1.5 |
 | Eyebrow | IBM Plex Mono | 14px / 500 / 1.5 |
 
 Compare 390, 768 and 1440px, plus 599/601 and 899/901px around the 600/900px breakpoints, dark mode and 200% zoom. Two comparison panels sit side by side above 900px and stack below. Check fonts, full labels, eye mouse/keyboard controls, empty/loading/error/success states, long payloads/IDs and no horizontal page overflow. Render all returned data as text. Executed evidence belongs in the package verification report.

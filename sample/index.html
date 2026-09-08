@@ -19,14 +19,13 @@
     <nav class="topbar" aria-label="Sample navigation">
       <a class="brand" href="https://arkiv.network" target="_blank" rel="noreferrer" aria-label="Arkiv website">[ ARKIV ]</a>
       <span class="product-name">Encrypted notes</span>
-      <div class="wallet-controls"><span class="network">Tiramisu testnet</span><button id="connect" class="outline" type="button">Connect wallet</button></div>
+      <div class="wallet-controls"><span class="network">Tiramisu testnet</span><button id="connect" class="primary" type="button">Connect wallet</button></div>
     </nav>
     <p id="wallet-status" class="help wallet-status" role="status"></p>
     <header class="intro">
       <p class="eyebrow">[ PAYLOAD ENCRYPTION ]</p>
       <h1>A private note. A public entity.</h1>
       <p>Store an encrypted note. Compare what you can read with and without its key.</p>
-      <p class="help">Use non-sensitive test notes.</p>
     </header>
 
     <section aria-labelledby="create-heading">
@@ -61,10 +60,8 @@
           <button id="read-public" class="outline" type="button">Query without encryption key</button>
           <p id="public-status" class="operation-status" role="status">No query yet.</p>
           <div id="public-result" hidden>
-            <h4>Public attributes</h4><pre id="public-attributes" class="data-block"></pre>
-            <div class="label-row"><h4>Encrypted payload</h4><span id="public-bytes" class="help"></span></div><pre id="public-payload" class="data-block payload"></pre>
-            <div class="local-result locked"><h4>Message</h4><p>Encrypted. A key is required to read it.</p></div>
-            <details><summary>Full public entity · SDK fields</summary><pre id="public-entity" class="data-block payload"></pre></details>
+            <div class="message-result"><h3>Encrypted message</h3><pre id="public-payload" class="message-output ciphertext"></pre><p class="help"><span id="public-bytes"></span> · encrypted payload</p></div>
+            <details class="network-details"><summary>Network response</summary><h4>Public attributes</h4><pre id="public-attributes" class="data-block"></pre><details><summary>Full public entity · SDK fields</summary><pre id="public-entity" class="data-block payload"></pre></details></details>
           </div>
         </article>
         <article class="panel query-card" aria-labelledby="read">
@@ -72,10 +69,9 @@
           <button id="read" class="primary" type="button">Query with encryption key</button>
           <p id="read-status" class="operation-status" role="status">No query yet.</p>
           <div id="read-network-result" hidden>
-            <h4>Public attributes</h4><pre id="read-attributes" class="data-block"></pre>
-            <div class="label-row"><h4>Encrypted payload</h4><span id="read-bytes" class="help"></span></div><pre id="read-payload" class="data-block payload"></pre>
-            <div id="read-result" class="local-result" hidden><p class="eyebrow">[ LOCAL RESULT · NOT STORED ]</p><h4>Message</h4><pre id="plaintext"></pre></div>
-            <details><summary>Full public entity · SDK fields</summary><pre id="read-entity" class="data-block payload"></pre></details>
+            <div id="read-result" class="message-result" hidden><h3>Decrypted message</h3><pre id="plaintext" class="message-output decrypted"></pre><p class="help">Decrypted in this browser.</p></div>
+            <div id="read-locked" class="message-result"><h3>Decrypted message</h3><p class="message-output help">No readable message.</p></div>
+            <details class="network-details"><summary>Network response</summary><h4>Encrypted payload</h4><pre id="read-payload" class="data-block payload"></pre><p id="read-bytes" class="help"></p><h4>Public attributes</h4><pre id="read-attributes" class="data-block"></pre><details><summary>Full public entity · SDK fields</summary><pre id="read-entity" class="data-block payload"></pre></details></details>
           </div>
         </article>
       </div>

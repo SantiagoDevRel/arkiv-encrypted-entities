@@ -36,6 +36,14 @@ A new isolated consumer copied only the current tracked sample source, with no p
 
 No additional writes were needed for the final copy changes. A real MetaMask signature, mobile wallet, other browser engines and actual browser-menu zoom remain unverified; the real signer was Rabby and zoom stress used CSS at 200%.
 
+### Message-first comparison follow-up
+
+The follow-up UI highlights Connect wallet in Arkiv Orange and removes the two requested explanatory messages. Its main comparison now puts the full encrypted message opposite the recovered plaintext in aligned 16px result boxes; network metadata lives in keyboard-accessible disclosures. The network request remains identical in both modes and the plaintext remains local.
+
+Claude rechecked the changed source and desktop comparison screenshot with no blocking findings. Its accessibility note was resolved: a short, visually hidden **Stored.** status preserves the success announcement for assistive technology while the visible receipt confirms the write. Actual screen-reader announcement was not tested.
+
+Build and all 15 sample tests passed again. Real reads of the 85-byte Tiramisu entity recovered the original English note. Browser assertions verified aligned desktop result boxes, orange connection control, collapsed/open network details with matching ciphertext, wrong-key placeholder and cleared plaintext, missing/invalid keys, loading, RPC failure, wrong chain and session-change invalidation. Screenshots were inspected at 390/768/1440px and around the existing breakpoints (599/601, 899/901px), plus CSS zoom stress at 200%. No new transaction or deployment was required. The four requested changes also passed an independent source-only coverage check.
+
 ## Actually tested compatibility
 
 | Component | Version / network |
