@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@arkiv-network/sdk": "0.8.0",
-    "arkiv-encrypted-entities": "file:..",
+    "arkiv-encrypted-entities": "0.1.0",
     "viem": "2.56.3"
   },
   "devDependencies": {

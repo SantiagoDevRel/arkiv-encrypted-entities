@@ -67,7 +67,11 @@ el('reveal').addEventListener('click', () => {
   el('reveal').textContent = visible ? 'Ocultar clave' : 'Mostrar clave';
   el('reveal').setAttribute('aria-pressed', String(visible));
 });
-input('secret').addEventListener('input', () => { input('backup').checked = false; clearRead(); });
+input('secret').addEventListener('input', () => {
+  input('backup').checked = false; clearRead();
+  status('key-status', input('secret').value ? 'Clave ingresada. Se verificará al cifrar o descifrar.' : 'Todavía no hay una clave de cifrado.');
+  status('read-status', 'Guarda una nota o pega el identificador de una existente.');
+});
 input('entity').addEventListener('input', clearRead);
 input('rpc').addEventListener('input', clearRead);
 

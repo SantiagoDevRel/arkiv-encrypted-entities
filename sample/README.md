@@ -10,6 +10,8 @@ The sample consumes **arkiv-encrypted-entities@0.1.0** through the package name 
 
 Node.js 22.12+ and npm are required. No environment file, API key or server signer is required.
 
+On Windows PowerShell, if `npm.ps1 cannot be loaded` appears, use `npm.cmd` instead of `npm` (and `npx.cmd` instead of `npx`). No execution-policy change is needed.
+
 ```sh
 git clone https://github.com/SantiagoDevRel/arkiv-encrypted-entities.git
 cd arkiv-encrypted-entities/sample
