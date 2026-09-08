@@ -11,18 +11,24 @@ let busy = false, account: Hex | undefined, activeProvider: Provider | undefined
 let original: { entityKey: Hex; bytes: Uint8Array } | undefined;
 let uncertainWrite = false, sessionEpoch = 0;
 type QueryMode = 'public' | 'read';
-const responses: Partial<Record<QueryMode, string>> = {};
+const responses: Partial<Record<QueryMode, { json: string; order: number }>> = {};
+let responseOrder = 0;
 el('version').textContent = `arkiv-encrypted-entities ${VERSION} ↗`;
 
 function status(id: string, text: string, state = 'idle') { el(id).textContent = text; el(id).dataset.state = state; }
 function compare() {
   const both = responses.public !== undefined && responses.read !== undefined;
-  status('comparison-status', both ? (responses.public === responses.read ? `Same public entity and encrypted payload. ${el('read-result').hidden ? 'A correct key is still needed.' : 'Message decrypted locally.'}` : 'Entity changed between queries. Run both again.') : '');
+  const match = both && responses.public!.json === responses.read!.json;
+  status('comparison-status', both ? (match ? `Same public entity and encrypted payload. ${el('read-result').hidden ? 'A correct key is still needed.' : 'Message decrypted locally.'}` : 'Entity changed between queries. Run both again.') : '');
+  const latest = (Object.entries(responses) as [QueryMode, { json: string; order: number }][]).sort((a, b) => b[1].order - a[1].order)[0];
+  el('network-result').hidden = !latest;
+  el('network-entity').textContent = latest?.[1].json ?? '';
+  el('network-caption').textContent = latest ? (match ? 'Same response for both queries · decoded SDK fields.' : `Latest successful fetch: ${latest[0] === 'public' ? 'without' : 'with'} encryption key · decoded SDK fields.`) : '';
 }
 function clearQuery(mode: QueryMode) {
   delete responses[mode];
   el(mode === 'public' ? 'public-result' : 'read-network-result').hidden = true;
-  for (const suffix of ['attributes', 'payload', 'entity', 'bytes']) el(`${mode}-${suffix}`).textContent = '';
+  for (const suffix of ['payload', 'bytes']) el(`${mode}-${suffix}`).textContent = '';
   if (mode === 'read') { el('read-result').hidden = true; el('read-locked').hidden = false; el('plaintext').textContent = ''; }
   if (responses.public === undefined && responses.read === undefined) el('explorer-result').hidden = true;
   compare();
@@ -44,7 +50,7 @@ for (const [field, button] of [['secret', 'reveal'], ['read-secret', 'read-revea
 }
 function errorMessage(error: unknown): string {
   if (error instanceof UserError) return error.message;
-  if (error instanceof EncryptionError) return ({ INVALID_KEY: 'Enter the original 64-character hexadecimal encryption key.', DECRYPTION_FAILED: 'Decryption failed: the key is incorrect or the payload was altered. No readable message is returned.', INVALID_INPUT: 'The note exceeds 100,000 UTF-8 bytes or has an invalid format.', INVALID_ENVELOPE: 'This payload is not a valid encrypted v1 envelope.', CRYPTO_UNAVAILABLE: 'WebCrypto requires HTTPS or localhost and a modern browser.' })[error.code];
+  if (error instanceof EncryptionError) return ({ INVALID_KEY: 'Enter the original 64-character hexadecimal encryption key.', DECRYPTION_FAILED: 'Decryption failed: wrong key or altered payload. Showing encrypted bytes.', INVALID_INPUT: 'The note exceeds 100,000 UTF-8 bytes or has an invalid format.', INVALID_ENVELOPE: 'This payload is not a valid encrypted v1 envelope.', CRYPTO_UNAVAILABLE: 'WebCrypto requires HTTPS or localhost and a modern browser.' })[error.code];
   let cause = error as { code?: number; name?: string; cause?: unknown } | undefined;
   for (let i = 0; cause && i < 8; i++, cause = cause.cause as typeof cause) {
     if (cause.code === 4001 || cause.name === 'UserRejectedRequestError') return 'You rejected the wallet request. No write is confirmed for this attempt.';
@@ -153,7 +159,7 @@ function query(mode: QueryMode) {
     const id = input('entity').value.trim();
     if (!/^0x[0-9a-fA-F]{64}$/.test(id)) throw new UserError('Enter an entity ID: 0x followed by 64 hexadecimal characters.');
     // The public query never reads or validates a key. Both modes issue the same SDK request.
-    const key = mode === 'read' ? await importKey(input('read-secret').value) : undefined;
+    const secret = mode === 'read' ? input('read-secret').value : undefined;
     const rpc = publicClient();
     status(`${mode}-status`, 'Fetching the public entity from Tiramisu…', 'loading');
     if (await rpc.getChainId() !== tiramisu.id) throw new UserError('The RPC is not on Tiramisu.');
@@ -162,15 +168,15 @@ function query(mode: QueryMode) {
     if (entity.contentType !== CONTENT_TYPE || !entity.payload) throw new UserError('This entity does not contain an encrypted v1 payload from this tool.');
     const payload = toHex(entity.payload);
     const fields = { entityId: id, owner: entity.owner, contentType: entity.contentType, attributes: entity.attributes ?? {}, payload, createdAtBlock: entity.createdAt, updatedAtBlock: entity.updatedAt, expiresAtBlock: entity.expiresAt };
-    el(`${mode}-attributes`).textContent = pretty(entity.attributes ?? {});
     el(`${mode}-payload`).textContent = payload;
     el(`${mode}-bytes`).textContent = `${entity.payload.length.toLocaleString('en-US')} bytes`;
-    el(`${mode}-entity`).textContent = pretty(fields);
     el(mode === 'public' ? 'public-result' : 'read-network-result').hidden = false;
-    responses[mode] = pretty(fields); compare();
+    responses[mode] = { json: pretty(fields), order: ++responseOrder }; compare();
     el<HTMLAnchorElement>('entity-explorer').href = `${EXPLORER_URL}/entity/${id}`;
     el('explorer-result').hidden = false;
-    if (!key) { status('public-status', 'Fetched from Arkiv. No key used.', 'success'); return; }
+    if (mode === 'public') { status('public-status', 'Fetched from Arkiv. No key used.', 'success'); return; }
+    // Fetching ciphertext does not require a valid key. Validate only for local decryption.
+    const key = await importKey(secret!);
     const recovered = await decryptPayload(key, entity.payload);
     if (epoch !== sessionEpoch) throw new UserError('The session or inputs changed. Restore your key privately and query again.');
     const same = original?.entityKey.toLowerCase() === id.toLowerCase();

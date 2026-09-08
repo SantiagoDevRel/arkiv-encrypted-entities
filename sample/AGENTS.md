@@ -20,6 +20,7 @@ Local build and crypto validation need no credentials; proceed with those while 
 - Keep custody warnings inline; use keyboard/touch-accessible disclosures for secondary detail and avoid repeated explanations. Both key inputs represent the same encryption-key format; inspection needs the original key.
 - Keep all UI copy in English, the documented Arkiv typography and the two create/inspect sections. Keep an accessible eye button in every encryption-key field.
 - Both query buttons must fetch public ciphertext with the same SDK request. The key is used only in the browser; never imply the network authorizes reads based on an encryption key. The public query must work without reading or validating a key.
+- Fetch before validating the inspection key; missing/malformed/wrong keys must preserve the retrieved ciphertext while clearing stale plaintext. Keep one network-response panel, labelling it shared only for equal snapshots; otherwise identify the latest successful fetch.
 - Show actual public attributes separately from complete payload bytes. Explorer entity and transaction links have different purposes; do not claim its overview displays bytes it only summarizes. Keep failure messages clear and previous plaintext cleared on a failed keyed query.
 - No unrelated features, skills, MCPs or scaffolding. The requested UI revision changes presentation; it does not change the published package API or encryption format.
 

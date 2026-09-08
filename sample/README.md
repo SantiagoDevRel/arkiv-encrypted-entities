@@ -49,15 +49,15 @@ Use the same Entity ID for both buttons. To inspect after reload, paste the ID a
 | **Query without encryption key** | Public attributes, encrypted payload and metadata | Nothing: no key is read or sent; no decryption attempted |
 | **Query with encryption key** | The same public entity request | Authenticates/decrypts the payload with the local key and displays the original note |
 
-The public query works even if the decryption-key field is empty or invalid. The keyed query validates key format before requesting data; an incorrect well-formed key can still retrieve ciphertext, but authentication fails and no plaintext is shown. A successful same-tab roundtrip reports a byte-for-byte match. If the entity changed between queries, the comparison tells you to run both again instead of claiming the responses match.
+Both queries fetch the public entity without sending a key. The keyed query then validates the key and attempts local decryption. A missing, malformed or incorrect key leaves the retrieved ciphertext visible; no unauthenticated plaintext is shown. A successful same-tab roundtrip reports a byte-for-byte match. If the entity changed between queries, the comparison tells you to run both again instead of claiming the responses match.
 
-The main comparison shows **Encrypted message** on the left (the complete ciphertext) and **Decrypted message** on the right (the original text after local authentication). The result boxes align on desktop and stack on smaller screens. A wrong key shows **No readable message** and clears any previous plaintext.
+The main comparison shows **Encrypted message** on the left (the complete ciphertext) and **Decrypted message** on the right (the original text after local authentication). The result boxes align on desktop and stack on smaller screens. A wrong key clears any previous plaintext and shows **Encrypted message** with the actual retrieved `0x…` bytes in the right-hand box too.
 
-Open **Network response** beneath either result for the technical data:
+Open the single **Network response** below the comparison for decoded SDK fields. Identical snapshots are labelled as the same response for both queries. If only one query succeeded or the snapshots differ, it shows the latest successful fetch and names that query; clearing a result falls back to the remaining snapshot. No results means no shared response.
 
 - **Public attributes:** actual SDK typed attributes. This sample writes only `app = encrypted-entities-sample`; it never writes the note or encryption key into an attribute.
-- **Encrypted payload:** the keyed panel's network response still contains the same encrypted bytes shown in the public result, with the actual byte count. Long payloads scroll; they are not shortened or replaced by invented text.
-- **Full public entity · SDK fields:** expandable ID, owner, content type, attributes, payload and block metadata. This is a JSON presentation of decoded SDK fields; it is not claimed to be the raw JSON-RPC wire response. Big integers are displayed as decimal strings.
+- **Payload:** the complete encrypted envelope as hexadecimal. Long payloads scroll; they are not shortened or replaced by invented text.
+- **Metadata:** ID, owner, content type and block information. This single JSON presentation contains decoded SDK fields, not the raw JSON-RPC wire response. Big integers are displayed as decimal strings.
 
 The decrypted text is not part of the network response and is not sent back to Arkiv.
 
@@ -68,7 +68,7 @@ The current Tiramisu entity explorer shows a summary, payload size and history; 
 - Missing wallet or rejected connection: writing reports the problem; public reading remains available.
 - Wrong network: checks fail closed. No mainnet fallback. Account/network changes clear both keys and recovered results; reconnect and restore your private backup.
 - Failed/ambiguous write: the write button stays blocked until reload. Inspect wallet activity first; a provider can broadcast successfully then lose its response. No automatic write retry.
-- Malformed entity ID or missing/malformed decryption key: validation stops the affected query. Wrong key/tampering: ciphertext may remain visible but previous plaintext is cleared.
+- Malformed entity ID: validation stops the query. Missing/malformed/wrong encryption key or tampering: the fetched ciphertext remains visible while previous plaintext is cleared and local decryption reports an error.
 - Missing/expired entity or network failure: the affected result is cleared and an error shown. You may retry a read. A read error never rolls back an already confirmed write.
 - Changing the entity ID clears both results; editing the decryption key clears its keyed result. The creation key and decryption key are separate inputs; editing one does not silently replace the other.
 - An empty note is valid; local recovery says **(Empty note)**.

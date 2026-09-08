@@ -44,6 +44,16 @@ Claude rechecked the changed source and desktop comparison screenshot with no bl
 
 Build and all 15 sample tests passed again. Real reads of the 85-byte Tiramisu entity recovered the original English note. Browser assertions verified aligned desktop result boxes, orange connection control, collapsed/open network details with matching ciphertext, wrong-key placeholder and cleared plaintext, missing/invalid keys, loading, RPC failure, wrong chain and session-change invalidation. Screenshots were inspected at 390/768/1440px and around the existing breakpoints (599/601, 899/901px), plus CSS zoom stress at 200%. No new transaction or deployment was required. The four requested changes also passed an independent source-only coverage check.
 
+### Invalid-key ciphertext and shared network response
+
+After inspecting the developer's screenshot with all disclosures open, the duplicate response panels were replaced by one full-width decoded SDK response. Equal snapshots share it; differing snapshots are labelled and the latest successful fetch is displayed. Clearing that fetch falls back to the remaining result, or clears the shared panel if neither remains.
+
+Key import/validation now happens after the public entity fetch. Exactly one altered hex character, one non-hex character and an empty key were each tested against the real 85-byte Tiramisu entity: the right-hand box kept the original ciphertext, displayed a local-decryption error and never retained earlier plaintext. Captured query parameters matched and outgoing requests contained no key or plaintext. Controlled changed-owner responses verified unequal-snapshot attribution, and controlled RPC failures verified clearing. The wallet-session race probe also passed after the change.
+
+Claude independently reviewed the changed source, race guards and wrong-character screenshot and cleared the revision without blocking findings. Runtime tests above were performed by the primary agent.
+
+Build and all 15 sample tests passed. All disclosures were opened at 390/599/601/768/899/901/1440px, with no horizontal page overflow and equal desktop panel heights. Full-page and comparison screenshots were inspected at small/medium/large widths. The published package and signing flow are unchanged; no new transaction or deployment was performed.
+
 ## Actually tested compatibility
 
 | Component | Version / network |
