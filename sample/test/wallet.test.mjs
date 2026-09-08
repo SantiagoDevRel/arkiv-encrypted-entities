@@ -51,3 +51,40 @@ test('wallet rejection propagates, with no send',async()=>{
   const f=fixture({reject:true});await assert.rejects(connect(f.provider),{code:4001});assert.equal(f.sent.length,0);
 });
 test('connected Tiramisu session validates',async()=>{const f=fixture();assert.equal(await connect(f.provider),account);await assertSession(f.provider,account);});
+
+for (const missing of [false, true]) {
+  test(`connection switches to Tiramisu automatically (missing network: ${missing})`, async () => {
+    let chain = 1, added = false;
+    const calls = [];
+    const p = { request: async args => {
+      calls.push(args);
+      if (args.method === 'eth_requestAccounts' || args.method === 'eth_accounts') return [account];
+      if (args.method === 'eth_chainId') return `0x${chain.toString(16)}`;
+      if (args.method === 'wallet_switchEthereumChain') {
+        assert.deepEqual(args.params, [{ chainId: '0x7614d1' }]);
+        if (missing && !added) throw { code: 4902 };
+        chain = 7738577; return null;
+      }
+      if (args.method === 'wallet_addEthereumChain') {
+        assert.equal(args.params[0].chainId, '0x7614d1');
+        assert.deepEqual(args.params[0].rpcUrls, tiramisu.rpcUrls.default.http);
+        added = true; return null;
+      }
+      throw Error('Unexpected wallet request');
+    } };
+    assert.equal(await connect(p), account);
+    assert.equal(chain, 7738577);
+    assert.equal(added, missing);
+    assert.equal(calls.some(c => c.method === 'eth_sendTransaction'), false);
+  });
+}
+
+test('rejecting the network switch never returns a connected session', async () => {
+  const p = { request: async ({ method }) => {
+    if (method === 'eth_requestAccounts') return [account];
+    if (method === 'eth_chainId') return '0x1';
+    if (method === 'wallet_switchEthereumChain') throw { code: 4001 };
+    throw Error('Unexpected request after rejected switch');
+  } };
+  await assert.rejects(connect(p), { code: 4001 });
+});

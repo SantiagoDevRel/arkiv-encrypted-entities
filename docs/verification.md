@@ -4,6 +4,38 @@
 
 Executed on 2026-09-08: Node 22.22.3, TypeScript 5.9.3, eight crypto tests including native Node interoperability in both directions, wrong/missing keys, tampered IV/ciphertext/tag, Unicode, binary, empty and maximum-size plaintext. Build passed.
 
+## English comparison UI revision — 2026-09-08
+
+The developer requested a revised English sample, visible key controls, fixed Tiramisu, clearer explorer/payload explanations and comparison queries. A real [Claude Design reference](https://claude.ai/design/p/e998f7d1-d811-4738-912c-4ae3d5531096) was generated with the selected Arkiv Design System and inspected before adapting its create/inspect layout. The sample retains the existing SDK/wallet transport and published npm `0.1.0`; the package API and ciphertext format did not change.
+
+- **Checks:** production build and 15 sample tests passed, including registry provenance and automatic Tiramisu switch/add/rejection. No new dependencies were introduced.
+- **Real reads:** a browser without a wallet queried a real Tiramisu entity both ways. Captured `arkiv_query` parameters were equal. Both panels displayed identical ciphertext and public typed attributes; keyed recovery matched the stored text. Captured POSTs contained neither the encryption key nor plaintext. The public query worked with empty and malformed key fields. A well-formed wrong key fetched public ciphertext, failed authentication and displayed no stale plaintext.
+- **UI:** screenshots and geometry at 390/599/601/768/899/901/1440px; empty, loading, error and result states, dark mode, loaded fonts and 200% CSS zoom stress check. No page overflow. Mouse and keyboard toggled both eye controls. An isolated injected-wallet test changed the session during retrieval: both keys were cleared and masked, and late plaintext was not rendered. Wallet behavior in that race test was simulated; reads still used the real RPC. Actual browser-menu zoom and other browser engines were not separately tested.
+- **Explorer:** the real entity route showed content type, payload byte count and operation history. The UI therefore describes it as a summary and shows full payload bytes itself, separately from attributes. Entity and transaction links are distinct.
+
+The revised flow also performed one authorized real write through Rabby / Arkiv Wallet, only on Tiramisu:
+
+| Evidence | Value |
+| --- | --- |
+| Transaction | `0xea5b31b57e13cce0f8f8be0d7addbcbec91c2a439da5bee7ae3c9b649c732290` |
+| Entity | `0x600bfc33e352452f375a559ad55afa79ebf863a40c645a65a04fad540f227d61` |
+| Result | Success, block 199478, gas used 86,904 |
+| Payload | 85 bytes; the default English note is 57 UTF-8 bytes |
+| Attributes | Only `app`, containing `encrypted-entities-sample` |
+| End-to-end | Read-key autofill, identical public/keyed ciphertext, exact original English message and byte-for-byte UI success |
+
+[Transaction in explorer](https://indexer.tiramisu.db-chain.testnet.arkiv.network/tx/0xea5b31b57e13cce0f8f8be0d7addbcbec91c2a439da5bee7ae3c9b649c732290). The generated encryption key was privately backed up outside source control; it is not a wallet key. No additional network or account was authorized or used. The sample remains local; no deployment occurred.
+
+### Final clarity review and clean consumer
+
+Claude reviewed the revised source and initial rendered screenshots, then rechecked the final source/build and cleared its blockers. Its CSP finding was reproduced: Vite's JavaScript CSS import was blocked during development. Loading the stylesheet through an external HTML link fixed development without weakening the production CSP. Claude did not rerun the browser/test evidence; those checks were executed by the primary agent.
+
+Grok 4.6 via the native Grok Build lane reviewed source copy only. Its feedback led to one consistent **Encryption key** label, removal of repeated query headings, matching **Message** labels, and a clearly public Entity ID receipt. The Cursor Grok attempt failed for exhausted quota and is not counted as a review. Secondary explanation now uses native disclosures; critical custody stays inline. The final English screenshots were regenerated using the 85-byte entity above and inspected at small/medium/large widths.
+
+A new isolated consumer copied only the current tracked sample source, with no parent package or node_modules. Following the README, `npm ci`, `npm ls`, all 15 tests and the production build passed. Registry-installed versions were encryption package 0.1.0, SDK 0.8.0 and viem 2.56.3. The documented dev command ran on an alternate free loopback port for parallel verification; real public/keyed reads recovered the exact English note, CSS applied, no CSP violations occurred, and disclosures worked with keyboard and a mobile-size click. Both real explorer routes were rendered and matched the current entity/transaction; the entity overview displayed 85 B, content type and history, not the full ciphertext bytes.
+
+No additional writes were needed for the final copy changes. A real MetaMask signature, mobile wallet, other browser engines and actual browser-menu zoom remain unverified; the real signer was Rabby and zoom stress used CSS at 200%.
+
 ## Actually tested compatibility
 
 | Component | Version / network |
@@ -20,7 +52,7 @@ Executed on 2026-09-08: Node 22.22.3, TypeScript 5.9.3, eight crypto tests inclu
 
 Do not infer mainnet, legacy SDK, other browser engines, hardware-wallet or mobile-wallet compatibility. The MetaMask-compatible EIP-1193 path is implemented; a real MetaMask transaction was not performed.
 
-## Real network evidence
+## Initial real network evidence
 
 Two small test-note entities were created by the authorized wallet. No wallet key was extracted. The independent encryption key was generated locally and kept outside the repository. No plaintext or encryption key was placed in entity attributes or transaction data.
 
@@ -33,7 +65,7 @@ Two small test-note entities were created by the authorized wallet. No wallet ke
 
 The fix keeps signing/session checks in Rabby and routes SDK reads, including receipts, through the explicit timeout-bounded RPC. Eleven wallet tests cover this separation, gas buffering, wallet rejection, mismatched accounts/networks and unexpected transaction targets/value. Those eleven tests use mocks, not live wallet signatures.
 
-## Browser verification
+## Initial browser verification
 
 Inspected actual screenshots at **390, 768 and 1440px**, with geometry probes also at **599/601px** around the 600px breakpoint. Dark mode; 200% zoom checked. No global horizontal overflow. Computed family/size/weight/line-height match the sample README, and Space Grotesk/IBM Plex Mono loaded successfully.
 
