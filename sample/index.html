@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark" /><meta name="referrer" content="no-referrer" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https: http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:*; img-src 'self' data:; base-uri 'none'; form-action 'none'; object-src 'none'" />
+  <title>Entidades cifradas · Arkiv</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+</head>
+<body><main>
+  <header>
+    <p class="eyebrow">[ SAMPLE · <span id="version"></span> ]</p>
+    <h1>Cifra una nota.<br />Recupérala desde Arkiv.</h1>
+    <p>El contenido se cifra en tu navegador. Tu wallet firma la escritura de una Arkiv entity; la clave de cifrado queda contigo.</p>
+    <p class="help">These packages are intended for testnet use. Usa solo texto de prueba sin datos sensibles.</p>
+  </header>
+  <section aria-labelledby="connection-heading">
+    <h2 id="connection-heading">1. Conecta tu wallet</h2>
+    <p>Tiramisu · test GLM del <a href="https://hub.arkiv.network/faucet" target="_blank" rel="noreferrer">faucet</a>. La lectura no necesita wallet.</p>
+    <div class="actions"><button id="connect" type="button">Conectar MetaMask o Rabby</button></div>
+    <p id="wallet-status" role="status">Wallet sin conectar.</p>
+    <details><summary>Conexión RPC</summary>
+      <label for="rpc">URL de Tiramisu</label><input id="rpc" type="url" autocomplete="off" spellcheck="false" />
+      <p class="help">Solo se usa en esta pestaña. El RPC público no exige access key; si necesitas mayor capacidad, usa un endpoint autorizado para navegador.</p>
+    </details>
+  </section>
+  <section aria-labelledby="key-heading">
+    <h2 id="key-heading">2. Guarda tu clave de cifrado</h2>
+    <p>Es independiente de tu wallet. Para recuperar la nota tras recargar, necesitarás esta misma clave y el identificador de la entity.</p>
+    <label for="secret">Clave de cifrado · 64 caracteres hexadecimales</label>
+    <input id="secret" type="password" autocomplete="off" spellcheck="false" aria-describedby="secret-help" />
+    <p id="secret-help" class="help">Genera una clave nueva o pega tu respaldo. Nunca uses la frase semilla ni la clave privada de tu wallet.</p>
+    <div class="actions"><button id="generate" type="button">Generar clave nueva</button><button id="reveal" type="button" aria-pressed="false">Mostrar clave</button></div>
+    <label class="consent"><input id="backup" type="checkbox" />He guardado la clave en un lugar privado y entiendo que la wallet no puede recuperarla.</label>
+    <p id="key-status" role="status">Todavía no hay una clave de cifrado.</p>
+  </section>
+  <section aria-labelledby="write-heading">
+    <h2 id="write-heading">3. Cifra y guarda una nota</h2>
+    <form id="write-form">
+      <label for="note">Texto de prueba</label><textarea id="note" rows="4">Hola Arkiv. Esta es una prueba de cifrado.</textarea>
+      <p class="help">Máximo 100.000 bytes UTF-8. Entity Expiration: aproximadamente 24 horas; no borra el historial ni otras copias.</p>
+      <p class="help">Público: atributo app, wallet, identificadores, tamaño, formato y expiración. El tamaño revela la longitud del texto. Solo se cifra el contenido.</p>
+      <button id="write" type="submit">Cifrar y guardar en Tiramisu</button>
+    </form>
+    <p id="write-status" role="status">No has enviado ninguna nota.</p>
+    <div id="write-result" hidden><p>Entity: <code id="created-key"></code></p><a id="transaction" target="_blank" rel="noreferrer">Ver transacción</a></div>
+  </section>
+  <section aria-labelledby="read-heading">
+    <h2 id="read-heading">4. Recupera y descifra</h2>
+    <form id="read-form">
+      <label for="entity">Identificador de la entity</label><input id="entity" autocomplete="off" spellcheck="false" placeholder="0x…" />
+      <button id="read" type="submit">Recuperar ciphertext y descifrar</button>
+    </form>
+    <p id="read-status" role="status">Guarda una nota o pega el identificador de una existente.</p>
+    <details id="cipher-result" hidden><summary>Ciphertext recuperado de la red</summary><pre id="ciphertext"></pre><p class="help">El payload autenticado no acredita al autor ni protege los atributos públicos.</p></details>
+    <div id="read-result" hidden><h3>Texto recuperado</h3><pre id="plaintext"></pre></div>
+  </section>
+  <footer><a href="https://github.com/SantiagoDevRel/arkiv-encrypted-entities">Código y documentación</a> · <a href="https://www.npmjs.com/package/arkiv-encrypted-entities">Paquete npm</a><p>La clave y el texto permanecen en memoria de esta pestaña. Sin respaldo no hay recuperación. No hay analítica ni almacenamiento local de secretos.</p></footer>
+</main><script type="module" src="/src/main.ts"></script></body>
+</html>

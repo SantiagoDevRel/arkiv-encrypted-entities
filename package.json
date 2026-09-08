@@ -1,0 +1,21 @@
+{
+  "name": "arkiv-encrypted-entities",
+  "version": "0.1.0",
+  "description": "AES-256-GCM payload encryption for Arkiv entities, using the same WebCrypto envelope in Node and browsers.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "files": ["dist", "README.md", "AGENTS.md", "CLAUDE.md", "LICENSE"],
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "prepack": "npm run build"
+  },
+  "devDependencies": { "typescript": "5.9.3" },
+  "license": "MIT",
+  "repository": { "type": "git", "url": "https://github.com/SantiagoDevRel/arkiv-encrypted-entities.git" },
+  "homepage": "https://github.com/SantiagoDevRel/arkiv-encrypted-entities#readme"
+}
