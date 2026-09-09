@@ -1,5 +1,5 @@
 {
-  "name": "arkiv-encrypted-entities-sample",
+  "name": "arkiv-encryption-sample",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@arkiv-network/sdk": "0.8.0",
-    "arkiv-encrypted-entities": "0.1.0",
+    "arkiv-encryption": "0.1.0",
     "viem": "2.56.3"
   },
   "devDependencies": {

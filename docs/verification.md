@@ -1,6 +1,31 @@
 # Verification: 0.1.0
 
-**npm 0.1.0 is published. The sample is intentionally local, awaiting the developer's review before deployment.**
+## Renamed release — 2026-09-09
+
+The current release is published as [arkiv-encryption@0.1.0](https://www.npmjs.com/package/arkiv-encryption/v/0.1.0). The [public sample](https://arkiv-encryption.vercel.app) consumes that exact registry version. The earlier sections below are historical evidence for **arkiv-encrypted-entities@0.1.0**, the previous package name.
+
+The public API, AES-256-GCM implementation, content type and envelope format are unchanged. Existing encrypted entities remain readable with their original independent encryption key. The sample retains its public `app` attribute value for compatibility. Its imports, npm link and displayed package name now use arkiv-encryption. The repository URL remains unchanged.
+
+Executed release checks: Node 22.22.3, TypeScript 5.9.3, eight crypto tests and typecheck passed. A fresh agent with only the consumer guides installed the package from the public npm registry, compiled the README example with strict TypeScript and recovered `Hello Arkiv` from its 39-byte envelope. Wrong-key and tampered-ciphertext probes returned `DECRYPTION_FAILED` without plaintext. Installed JavaScript, declarations and packaged consumer guides matched the reviewed release files. The agent completed integration without project source or chat context.
+
+| Release evidence | Result |
+| --- | --- |
+| npm tarball | `https://registry.npmjs.org/arkiv-encryption/-/arkiv-encryption-0.1.0.tgz` |
+| npm SHA-1 | `885af2f2b8518c078ff19eac2b44d69901842f55` |
+| Runtime implementation SHA-256 | `e762813e6f0b2e765d5e798af076a757cffcbdcc28d6eff1420be7559f320a82` |
+| Package contents | Seven files: package metadata, JavaScript, declarations, README, AGENTS, CLAUDE and license; no runtime dependencies |
+| Clean sample | Registry installation, all 15 tests and production build passed; SDK 0.8.0, viem 2.56.3, Vite 8.2.2 |
+| Independent reviews | Muse, Grok 4.6 and Claude each returned GO with no blocking findings after code inspection and independent probes. Reviewer observations led to pinned source links, explicit tested TypeScript version, native Web Crypto error guidance and per-key invocation guidance. These reviews are not a formal cryptographic audit or a guarantee of absolute security. |
+| Public deployment | Vercel deployment `dpl_2xLGMwTVu4fFguh5XEvsnG9EwWtK`, aliased to `arkiv-encryption.vercel.app`; deployed HTML, JavaScript, CSS and logo matched the clean registry build byte for byte |
+| HTTP checks | Framing prevention, MIME-sniffing prevention and no-referrer headers verified; tested environment, key, package, source, Git and PEM paths returned 404 |
+
+On the deployed sample, real Tiramisu reads of the previously authorized 85-byte entity below recovered the exact English note. Both query modes sent identical public query parameters; neither the encryption key nor plaintext appeared in outgoing requests. Changing one hexadecimal key character, entering a malformed key or leaving it empty preserved the real ciphertext and cleared plaintext. Controlled RPC failures and differing response snapshots also passed. All disclosures were opened at 390/599/601/768/899/901/1440px with no page overflow; final deployed screenshots were inspected at 390/768/1440px. No new transaction was sent for the rename. The earlier real Rabby transaction is the write evidence; a real MetaMask signature, mobile-wallet flow, other browser engines and native browser-menu zoom remain unverified.
+
+The sample uses the unmodified official white Arkiv SVG, checked against the canonical logo pack SHA-256; provenance is in `sample/public/brand/provenance.json`. The existing five Arkiv palette tokens are retained. The developer waived external brand approval. Vercel publication is explicitly authorized, with no deletion of existing resources; the deployment allowlist includes only the built `dist` and `vercel.json`.
+
+## Historical evidence — previous package name
+
+**arkiv-encrypted-entities 0.1.0 was published. At the time of the following checks, the sample was local and awaiting deployment review.**
 
 Executed on 2026-09-08: Node 22.22.3, TypeScript 5.9.3, eight crypto tests including native Node interoperability in both directions, wrong/missing keys, tampered IV/ciphertext/tag, Unicode, binary, empty and maximum-size plaintext. Build passed.
 

@@ -11,7 +11,7 @@ test('sample consumes an exact registry release, never the parent package', asyn
     assert.ok(path === '' || path.startsWith('node_modules/'), `Local lockfile path: ${path}`);
     assert.notEqual(dependency.link, true, `Linked dependency: ${path}`);
   }
-  const name = 'arkiv-encrypted-entities';
+  const name = 'arkiv-encryption';
   const version = manifest.dependencies[name];
   assert.match(version, /^\d+\.\d+\.\d+$/);
   assert.equal(lock.packages[''].dependencies[name], version);

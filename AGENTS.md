@@ -1,6 +1,6 @@
-# Consumer guide: arkiv-encrypted-entities
+# Consumer guide: arkiv-encryption
 
-Start with [README.md](README.md): it is the source of truth for installation, API, format, limits, key custody, troubleshooting and network requirements. Explicitly open this guide when consuming npm; do not assume dependency instructions are loaded automatically. The runnable sample has its [own integration guide](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/feat/encrypted-entities/sample/AGENTS.md).
+Start with [README.md](README.md): it is the source of truth for installation, API, format, limits, key custody, troubleshooting and network requirements. Explicitly open this guide when consuming npm; do not assume dependency instructions are loaded automatically. The runnable sample has its [own integration guide](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/arkiv-encryption-v0.1.0/sample/AGENTS.md).
 
 ## Decide with the developer
 

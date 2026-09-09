@@ -2,19 +2,23 @@
 
 Create an encrypted note, then compare what Arkiv returns with and without the encryption key. The payload stays encrypted on the network. Only the keyed query adds a locally decrypted message.
 
+The application is named **Arkiv Encryption** and consumes **arkiv-encryption**. The source repository keeps its existing name, `arkiv-encrypted-entities`; the AES-GCM format and previously stored entities remain compatible.
+
+[Open the sample](https://arkiv-encryption.vercel.app), deployed with **arkiv-encryption@0.1.0**.
+
 **These packages are intended for testnet use.**
 
-This sample consumes published **arkiv-encrypted-entities@0.1.0**, with SDK **0.8.0** and viem **2.56.3**. See [verification](../docs/verification.md) for executed evidence and deployment status. The [package README](../README.md) is the source of truth for API, envelope, privacy guarantees and limits. Agents must explicitly open [AGENTS.md](AGENTS.md) and the [package consumer guide](../AGENTS.md).
+This sample consumes published **arkiv-encryption@0.1.0**, with SDK **0.8.0** and viem **2.56.3**. See [verification](../docs/verification.md) for executed evidence and deployment status. The [package README](../README.md) is the source of truth for API, envelope, privacy guarantees and limits. Agents must explicitly open [AGENTS.md](AGENTS.md) and the [package consumer guide](../AGENTS.md).
 
 ## Run from a clean checkout
 
 Node.js 22.12+ and npm are required. No environment file, API key or server signer is needed. On restricted Windows PowerShell, use `npm.cmd` instead of `npm`; no execution-policy change is necessary.
 
 ```sh
-git clone https://github.com/SantiagoDevRel/arkiv-encrypted-entities.git
+git clone --branch arkiv-encryption-v0.1.0 https://github.com/SantiagoDevRel/arkiv-encrypted-entities.git
 cd arkiv-encrypted-entities/sample
 npm ci
-npm ls arkiv-encrypted-entities @arkiv-network/sdk viem
+npm ls arkiv-encryption @arkiv-network/sdk viem
 npm run dev
 ```
 
@@ -76,6 +80,8 @@ The current Tiramisu entity explorer shows a summary, payload size and history; 
 Keys and plaintext are never saved to localStorage, sessionStorage, URL parameters, logs or analytics. Reload discards them. Do not reveal keys on a shared screen. Browser extensions and scripts with page access can inspect memory; use test data only. Metadata remains public, successful decryption does not authenticate the owner/attributes, and expiration does not guarantee erasure. Full guarantees live in the package README.
 
 ## Design and UI verification contract
+
+The header uses the unmodified official white Arkiv SVG with its native aspect ratio; the source and SHA-256 are recorded in [brand provenance](public/brand/provenance.json). Deployment uses the existing static-build pattern: run the tests and build, then deploy only `dist` and `vercel.json` using the `.vercelignore` allowlist. The CSP restricts scripts to the app origin and reads to Tiramisu; response headers prevent framing and MIME sniffing. No environment configuration is required.
 
 Keep the primary action and key-backup warning visible. Secondary privacy, limits and explorer explanations use native disclosures that work with keyboard and touch. Both inputs use the same name, **Encryption key**: inspection uses the original key, not a second secret.
 

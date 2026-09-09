@@ -2,7 +2,7 @@
 import { str } from '@arkiv-network/sdk/attr';
 import { tiramisu } from '@arkiv-network/sdk/chains';
 import { type Hex, toHex } from 'viem';
-import { VERSION, CONTENT_TYPE, EncryptionError, generateKey, importKey, encryptPayload, decryptPayload } from 'arkiv-encrypted-entities';
+import { VERSION, CONTENT_TYPE, EncryptionError, generateKey, importKey, encryptPayload, decryptPayload } from 'arkiv-encryption';
 import { provider, connect, publicClient, writer, UserError, EXPLORER_URL, type Provider } from './wallet';
 
 function el<T extends HTMLElement = HTMLElement>(id: string): T { return document.getElementById(id) as T; }
@@ -13,7 +13,7 @@ let uncertainWrite = false, sessionEpoch = 0;
 type QueryMode = 'public' | 'read';
 const responses: Partial<Record<QueryMode, { json: string; order: number }>> = {};
 let responseOrder = 0;
-el('version').textContent = `arkiv-encrypted-entities ${VERSION} ↗`;
+el('version').textContent = `arkiv-encryption ${VERSION} ↗`;
 
 function status(id: string, text: string, state = 'idle') { el(id).textContent = text; el(id).dataset.state = state; }
 function compare() {
