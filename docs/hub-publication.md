@@ -1,0 +1,13 @@
+# Hub publication — 2026-09-09
+
+[ARKIV-ENCRYPTION is listed on staging](https://stage.hub.arkiv.network/tools#tool-arkiv-encryption), using published **arkiv-encryption@0.1.0** and the [public wallet sample](https://arkiv-encryption.vercel.app). Package, consumer and real Tiramisu evidence is recorded in [verification.md](verification.md).
+
+- [Hub PR #115](https://github.com/Arkiv-Network/arkiv-hub/pull/115) merged into `develop` at `d9c8cffcf89d940f6b17212d37560520c797d0d4`. Only the catalog entry and README changed. The other tools were preserved.
+- The [PR CI run](https://github.com/Arkiv-Network/arkiv-hub/actions/runs/34352713908) passed lint, typecheck, tests and build. Local verification passed 198 tests and four Tools browser tests with Node 22.22.3 and pnpm 11.7.0.
+- A concurrent team merge superseded the first deployment. The [successful staging workflow](https://github.com/Arkiv-Network/arkiv-hub/actions/runs/34353145429) deployed `cba2f20af8483165e1cca86d078209858e417495`, which contains PR #115. `/api/version` returned that commit and `deployEnv: staging` during verification. No Hub production promotion was performed.
+- On the deployed `/tools`, clipboard output was exactly `npm install arkiv-encryption@0.1.0`. The sample link opened the actual public application displaying `arkiv-encryption 0.1.0`. Source and documentation point to the published `arkiv-encryption-v0.1.0` tag.
+- Dark-mode full-page screenshots were inspected at 390, 768 and 1440px, with the new disclosure open. No page overflow or clipped action links were detected; the existing card layout and typography were retained. All four existing Tools browser tests passed against staging, including mobile navigation and every catalog entry's links.
+- A checkout cloned directly from the public release tag ran `npm ci`, registry version inspection, all 15 sample tests and its production build. The documented dev command used a free loopback port for parallel verification; real Tiramisu reads, correct/wrong/malformed/empty key handling and shared-response states passed there too.
+- Claude's final card review returned GO. Its README omission was fixed before the PR; the source-only review did not independently claim browser or network evidence. Muse, Grok and Claude package reviews are scoped in the release verification report.
+
+The UI verification above covers Chrome 152 in dark mode. A real MetaMask transaction, mobile-wallet transaction, other browser engines and native browser-menu zoom remain unverified. The earlier authorized Rabby write and current deployed reads establish the tested Tiramisu flow. Model reviews do not establish absolute security or replace a formal cryptographic audit.
