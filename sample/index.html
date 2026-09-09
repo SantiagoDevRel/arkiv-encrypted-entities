@@ -4,7 +4,7 @@
   <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="dark" /><meta name="referrer" content="no-referrer" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://rpc.tiramisu.db-chain.testnet.arkiv.network ws://localhost:* ws://127.0.0.1:*; img-src 'self' data:; base-uri 'none'; form-action 'none'; object-src 'none'" />
-  <title>Encrypted notes · Arkiv</title>
+  <title>Arkiv Encryption</title>
   <link rel="stylesheet" href="/src/style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -17,8 +17,8 @@
   </defs></svg>
   <main>
     <nav class="topbar" aria-label="Sample navigation">
-      <a class="brand" href="https://arkiv.network" target="_blank" rel="noreferrer" aria-label="Arkiv website">[ ARKIV ]</a>
-      <span class="product-name">Encrypted notes</span>
+      <a class="brand" href="https://arkiv.network" target="_blank" rel="noreferrer" aria-label="Arkiv website"><img src="/brand/arkiv-wordmark-white.svg" alt="Arkiv" width="130" height="30" /></a>
+      <span class="product-name">Arkiv Encryption</span>
       <div class="wallet-controls"><span class="network">Tiramisu testnet</span><button id="connect" class="primary" type="button">Connect wallet</button></div>
     </nav>
     <p id="wallet-status" class="help wallet-status" role="status"></p>
@@ -77,7 +77,7 @@
       <details id="network-result" class="network-details panel" hidden><summary>Network response</summary><p id="network-caption" class="help"></p><pre id="network-entity" class="data-block network-json"></pre></details>
       <div id="explorer-result" class="explorer-note" hidden><a id="entity-explorer" target="_blank" rel="noreferrer">View entity in explorer ↗</a><details><summary>What does the explorer show?</summary><p class="help">Entity details, payload size and history. For the full encrypted payload, use the bytes shown above.</p></details></div>
     </section>
-    <footer><div class="links"><a href="https://github.com/SantiagoDevRel/arkiv-encrypted-entities">Source &amp; docs ↗</a><a href="https://www.npmjs.com/package/arkiv-encrypted-entities" id="version"></a></div><details><summary>Privacy &amp; key storage</summary><p>Keys and decrypted text stay in this tab; reloading clears them. No analytics or local secret storage. Encryption authenticates the payload, not its owner or public attributes.</p></details></footer>
+    <footer><div class="links"><a href="https://github.com/SantiagoDevRel/arkiv-encrypted-entities">Source &amp; docs ↗</a><a href="https://www.npmjs.com/package/arkiv-encryption" id="version"></a></div><details><summary>Privacy &amp; key storage</summary><p>Keys and decrypted text stay in this tab; reloading clears them. No analytics or local secret storage. Encryption authenticates the payload, not its owner or public attributes.</p></details></footer>
   </main><script type="module" src="/src/main.ts"></script>
 </body>
 </html>

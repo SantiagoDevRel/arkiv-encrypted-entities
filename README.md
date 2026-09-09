@@ -1,33 +1,35 @@
-# arkiv-encrypted-entities
+# arkiv-encryption
 
 Encrypt an Arkiv entity's payload before storing it, then authenticate and decrypt the retrieved bytes locally. Public attributes can still be queried. This small ESM package extracts the AES-GCM envelope already used by the Arkiv cookbook; it does not replace the Arkiv SDK.
 
 **These packages are intended for testnet use.**
 
-Version: **0.1.0**. Release status and actually executed checks are recorded in [verification](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/feat/encrypted-entities/docs/verification.md). A local build or tarball is not an npm release.
+Version: **0.1.0**. Release status and actually executed checks are recorded in [verification](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/arkiv-encryption-v0.1.0/docs/verification.md). A local build or tarball is not an npm release.
 
-- [npm](https://www.npmjs.com/package/arkiv-encrypted-entities)
+- [npm](https://www.npmjs.com/package/arkiv-encryption)
 - [Source](https://github.com/SantiagoDevRel/arkiv-encrypted-entities)
-- [Runnable wallet sample](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/feat/encrypted-entities/sample/README.md)
-- [Consumer agent guide](AGENTS.md) and [sample agent guide](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/feat/encrypted-entities/sample/AGENTS.md)
+- [Runnable wallet sample](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/arkiv-encryption-v0.1.0/sample/README.md)
+- [Consumer agent guide](AGENTS.md) and [sample agent guide](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/arkiv-encryption-v0.1.0/sample/AGENTS.md)
 
-Agents integrating the installed package should explicitly open `node_modules/arkiv-encrypted-entities/AGENTS.md` and this README. Package managers do not automatically load them.
+Agents integrating the installed package should explicitly open `node_modules/arkiv-encryption/AGENTS.md` and this README. Package managers do not automatically load them.
 
 ## Install and run a minimal example
 
 Requires Node.js 22+ with WebCrypto. The library itself needs no wallet, funds, RPC, access key or SDK.
 
+Actually tested: Node **22.22.3** and TypeScript **5.9.3**; use that TypeScript version for the examples and generated typed-array declarations. Older TypeScript versions are not verified. The browser sample is tested in Chrome **152** with SDK **0.8.0**, viem **2.56.3** and **Tiramisu testnet (7738577)**. Other browsers, runtimes and networks are not claimed as tested.
+
 ```sh
 mkdir encrypted-demo
 cd encrypted-demo
 npm init -y
-npm install --save-exact arkiv-encrypted-entities@0.1.0
+npm install --save-exact arkiv-encryption@0.1.0
 ```
 
 Create `demo.mjs`:
 
 ```js
-import { generateKey, importKey, encryptPayload, decryptPayload } from 'arkiv-encrypted-entities';
+import { generateKey, importKey, encryptPayload, decryptPayload } from 'arkiv-encryption';
 
 const secret = generateKey(); // Keep a private backup; never log this or put it on-chain.
 const key = await importKey(secret);
@@ -64,7 +66,7 @@ node build/demo.mjs
 Handle authentication failures without logging key or payload data:
 
 ```ts
-import { EncryptionError } from 'arkiv-encrypted-entities';
+import { EncryptionError } from 'arkiv-encryption';
 try {
   await decryptPayload(key, ciphertext);
 } catch (error) {
@@ -85,11 +87,11 @@ try {
 | `VERSION`, `MAX_PLAINTEXT_BYTES` | Package version and conservative single-entity input policy. |
 | `EncryptionError`, `EncryptionErrorCode` | Safe, stable error codes listed below; messages contain no secret data. |
 
-TypeScript declarations ship with the ESM export. CommonJS `require()` is not an advertised entry point; use `await import('arkiv-encrypted-entities')` from CommonJS. Browser use requires HTTPS or localhost and WebCrypto. No Node built-ins or runtime dependencies are bundled.
+TypeScript declarations ship with the ESM export. CommonJS `require()` is not an advertised entry point; use `await import('arkiv-encryption')` from CommonJS. Browser use requires HTTPS or localhost and WebCrypto. No Node built-ins or runtime dependencies are bundled.
 
 ## Store and retrieve on Arkiv
 
-The [sample](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/feat/encrypted-entities/sample/README.md) is the complete implementation: wallet connection, network validation, local encryption, one signed entity creation, ciphertext retrieval and local decryption. It imports this npm package rather than duplicating encryption.
+The [sample](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/arkiv-encryption-v0.1.0/sample/README.md) is the complete implementation: wallet connection, network validation, local encryption, one signed entity creation, ciphertext retrieval and local decryption. It imports this npm package rather than duplicating encryption.
 
 For an existing SDK integration, install the tested dependencies:
 
@@ -100,7 +102,7 @@ npm install --save-exact @arkiv-network/sdk@0.8.0 viem@2.56.3
 Given your SDK `walletClient` and `publicClient`, both configured for Tiramisu, and the key from the minimal example:
 
 ```ts
-import { CONTENT_TYPE, encryptPayload, decryptPayload } from 'arkiv-encrypted-entities';
+import { CONTENT_TYPE, encryptPayload, decryptPayload } from 'arkiv-encryption';
 import { ExpirationTime } from '@arkiv-network/sdk';
 import { str } from '@arkiv-network/sdk/attr';
 
@@ -127,11 +129,14 @@ Tiramisu chain ID is **7738577**. The SDK's `tiramisu` export supplies the netwo
 - Format: **12-byte random IV || ciphertext || 16-byte authentication tag**, AES-256-GCM with a 128-bit tag. There is no compression and no extra authenticated data. Format version is identified by `CONTENT_TYPE`, not an embedded header. Existing cookbook envelopes use the same byte order; compressed cookbook content still needs its separate decompression step.
 - Authentication detects modified encrypted bytes or a wrong key. It **does not bind the payload to an entity key, wallet, network or public attributes**, and does not establish authorship. A valid envelope can be copied to another entity. If the application needs trusted authorship, verify an independently trusted entity/owner in its read policy.
 - Connecting or signing with MetaMask/Rabby does **not** derive or recover the encryption key. Generate an independent key and keep it in a password manager or another approved secret store. Do not use a wallet private key, seed phrase, password, transaction signature or login signature as this key.
+- Prefer a fresh key per note. If you reuse a key, track usage across all applications/devices and rotate well before 2^32 encryptions: the random-IV construction has a per-key invocation bound ([NIST SP 800-38D, section 8.3](https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf)). The package is stateless and does not enforce a global counter or rotate keys. Preserve old keys privately while their ciphertext is still needed.
 - The sample holds keys and plaintext in page memory only; a reload loses them unless you made a private backup. The non-extractable CryptoKey does not erase the original hex string from application memory. JavaScript cannot guarantee memory erasure.
 - Anyone with the encryption key and ciphertext can decrypt. There is no key escrow, account recovery, sharing protocol, access revocation or automatic rotation. Losing the key loses access. A compromised key exposes previously published ciphertext.
 - Entity Expiration removes active availability; it is **not erasure** of transaction history or other copies. Do not test with personal or production secrets. This package is not an independently audited privacy system, and does not protect against an XSS-compromised application, malicious extensions, devices or recipients.
 
 ## Errors and recovery
+
+Validation and authentication failures use `EncryptionError`. Unexpected WebCrypto/platform errors during key import or encryption can propagate; show a generic failure for unknown errors rather than rendering or logging arbitrary error objects.
 
 | Code / condition | Resolution |
 | --- | --- |
@@ -156,4 +161,4 @@ npm run typecheck
 npm pack --dry-run
 ```
 
-The sample has its own install and lockfile; see its README. Crypto interoperability tests use Node's independent `createCipheriv`/`createDecipheriv` implementation against the package's WebCrypto output in both directions. Exact release evidence, browser widths and network outcomes belong in [docs/verification.md](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/feat/encrypted-entities/docs/verification.md), not in implied support claims.
+The sample has its own install and lockfile; see its README. Crypto interoperability tests use Node's independent `createCipheriv`/`createDecipheriv` implementation against the package's WebCrypto output in both directions. Exact release evidence, browser widths and network outcomes belong in [docs/verification.md](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/arkiv-encryption-v0.1.0/docs/verification.md), not in implied support claims.

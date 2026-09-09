@@ -1,5 +1,5 @@
 {
-  "name": "arkiv-encrypted-entities",
+  "name": "arkiv-encryption",
   "version": "0.1.0",
   "description": "AES-256-GCM payload encryption for Arkiv entities, using the same WebCrypto envelope in Node and browsers.",
   "type": "module",
