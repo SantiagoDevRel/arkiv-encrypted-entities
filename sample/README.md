@@ -79,6 +79,8 @@ The current Tiramisu entity explorer shows a summary, payload size and history; 
 
 Keys and plaintext are never saved to localStorage, sessionStorage, URL parameters, logs or analytics. Reload discards them. Do not reveal keys on a shared screen. Browser extensions and scripts with page access can inspect memory; use test data only. Metadata remains public, successful decryption does not authenticate the owner/attributes, and expiration does not guarantee erasure. Full guarantees live in the package README.
 
+Sample links may include `?entity=0x...` with a 32-byte public entity identifier. Opening one fills the existing entity input and fetches its public ciphertext without connecting a wallet, reading a key or sending a transaction. Decryption still requires the original key entered privately in the existing field. Never put an encryption key in a sample link.
+
 ## Design and UI verification contract
 
 The header uses the unmodified official white Arkiv SVG with its native aspect ratio; the source and SHA-256 are recorded in [brand provenance](public/brand/provenance.json). Deployment uses the existing static-build pattern: run the tests and build, then deploy only `dist` and `vercel.json` using the `.vercelignore` allowlist. The CSP restricts scripts to the app origin and reads to Tiramisu; response headers prevent framing and MIME sniffing. No environment configuration is required.

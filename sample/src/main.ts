@@ -191,3 +191,10 @@ function query(mode: QueryMode) {
 }
 el('read-public').addEventListener('click', () => query('public'));
 el('read').addEventListener('click', () => query('read'));
+
+// Shared sample links contain only a public entity identifier, never an encryption key.
+const linkedEntity = new URLSearchParams(window.location.search).get('entity');
+if (linkedEntity !== null) {
+  input('entity').value = linkedEntity;
+  query('public');
+}
