@@ -6,6 +6,11 @@ export interface Operation {
   hash?: Hex;
   gas?: bigint;
 }
+/** Private, page-memory identity: equivalent hex casing cannot bypass the operation guard. Never persist or publish it. */
+export async function operationIdentity(account: string, secret: string, note: Uint8Array): Promise<string> {
+  const input = new TextEncoder().encode(JSON.stringify([account.toLowerCase(), secret.toLowerCase(), Array.from(note)]));
+  return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', input)), byte => byte.toString(16).padStart(2, '0')).join('');
+}
 export class WriteOutcome extends Error {
   readonly code: 'PENDING' | 'DISAGREES' | 'UNCERTAIN' | 'REVERTED' | 'BLOCKED';
   readonly hash?: Hex;

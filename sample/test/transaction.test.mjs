@@ -1,6 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { submitOperation } from '../src/transaction.ts';
+import { submitOperation, operationIdentity } from '../src/transaction.ts';
+test('equivalent account/key casing retains an operation; distinct bytes, key or owner start a new one',async()=>{
+  const account='0x'+'ab'.repeat(20),key='cd'.repeat(32),bytes=new Uint8Array([0,255]);
+  const identity=await operationIdentity(account,key,bytes);
+  assert.equal(await operationIdentity(account.toUpperCase(),key.toUpperCase(),bytes),identity);
+  for(const args of [[account,key,new Uint8Array([0,254])],[account,'ef'.repeat(32),bytes],['0x'+'ef'.repeat(20),key,bytes]])assert.notEqual(await operationIdentity(...args),identity);
+});
 const hash = '0x' + 'ab'.repeat(32);
 function fixture(kind) {
   const op = { phase: 'idle', attempts: 0 };

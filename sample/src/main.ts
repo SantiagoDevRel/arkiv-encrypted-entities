@@ -2,7 +2,7 @@
 import { hexToBytes } from 'viem';
 import { getGasPrice } from 'viem/actions';
 import { Notes } from './model';
-import { submitOperation, WriteOutcome, type Operation } from './transaction';
+import { submitOperation, operationIdentity, WriteOutcome, type Operation } from './transaction';
 
 import { type Hex, toHex } from 'viem';
 import { VERSION, CONTENT_TYPE, EncryptionError, generateKey, importKey, encryptPayload, decryptPayload } from 'arkiv-encryption';
@@ -122,7 +122,7 @@ el('write-form').addEventListener('submit', event => {
     const bytes = new TextEncoder().encode(el<HTMLTextAreaElement>('note').value);
     status('write-status', 'Encrypting locally and checking Rabdi…', 'loading');
     const ciphertext = await encryptPayload(key, bytes);
-    const identity = toHex(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify([account, secret, Array.from(bytes)])))));
+    const identity = await operationIdentity(account, secret, bytes);
     const operation: Operation = operations.get(identity) ?? { phase: 'idle', attempts: 0 };
     operations.set(identity, operation);
     const rpc = publicClient();
