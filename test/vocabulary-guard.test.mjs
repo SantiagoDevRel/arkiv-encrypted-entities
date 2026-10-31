@@ -78,3 +78,14 @@ test('dated historical allowances require exact file and content hash', () => {
     assert.ok(violations(entry.file, original + '\n' + ('pay' + 'load')).length);
   }
 });
+
+
+test('registry sample has no legacy import waiver and cannot reintroduce old names', () => {
+  const list = JSON.parse(readFileSync(path.join(root, 'vocabulary-waivers.json'), 'utf8'));
+  assert.deepEqual(list, []);
+  for (const file of ['sample/src/main.ts', 'sample/src/another.ts', 'sample/README.md']) {
+    for (const name of ['encrypt' + 'Pay' + 'load', 'decrypt' + 'Pay' + 'load']) {
+      assert.ok(violations(file, name).length, file);
+    }
+  }
+});
