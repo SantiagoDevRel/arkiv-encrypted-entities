@@ -2,7 +2,7 @@
 
 Encrypt binary data locally with AES-256-GCM for a `bytes` column. Attributes stay public. Indexed public columns remain queryable; encrypted content cannot be filtered. The package uses WebCrypto and does not sign transactions or replace the Arkiv SDK.
 
-**Testnet use only. Version 1.1.0 is an unpublished candidate.** The deployed sample currently consumes exact registry `arkiv-encryption@1.0.0` with SDK 1.0.0 on Rabdi. See [verification](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/v1.0.0/docs/rabdi-verification.md) and [breaking changes](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/v1.0.0/CHANGELOG.md).
+**arkiv-encryption 1.1.0 · Rabdi testnet.** Encrypt binary data for a `bytes` column; attributes stay public. The wallet sample pins exact registry 1.0.0 independently of the library API documented here.
 
 - [npm](https://www.npmjs.com/package/arkiv-encryption)
 - [Source](https://github.com/SantiagoDevRel/arkiv-encrypted-entities)
@@ -14,7 +14,7 @@ Agents must explicitly open this README and `node_modules/arkiv-encryption/AGENT
 
 Node.js 22+ and WebCrypto are required. Crypto needs no wallet, funds, access key or SDK at runtime. The optional SDK peer is `^1.0.0`; the integration is developed against exactly 1.0.0. The crypto API and v1 envelope remain compatible with 0.1.0.
 
-Install after 1.1.0 is published (before publication, verify the packed candidate):
+Install version 1.1.0:
 
 ```sh
 npm install --save-exact arkiv-encryption@1.1.0
@@ -131,4 +131,3 @@ npm run build
 
 Run `node --test test/vocabulary-guard.test.mjs` to check the complete tree, generated files and mutation cases. Run installs/builds/tests on the DGX under this workspace's project rules. Crypto tests verify native Node interoperability in both directions, empty/binary/maximum inputs and authentication failures. Sample tests cover registry provenance, wallet/session/gas checks, server read restrictions and the required persistent operation scenarios. [Release verification](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/v1.0.0/docs/rabdi-verification.md) distinguishes mocks, live testnet evidence and unverified browser wallet signing.
 
-Release status: arkiv-encryption@1.0.0 is published for SDK 1.0.0 / Rabdi. This branch prepares 1.1.0; it has not been published. Samples retain their exact registry pins until the phase-2 release sequence.

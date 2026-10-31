@@ -4,7 +4,8 @@ import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 
-const root=process.cwd(), tarball=path.join(root,'arkiv-encryption-1.1.0.tgz');
+const root=process.cwd(), version=JSON.parse(await readFile('package.json','utf8')).version, tarball=path.join(root,`arkiv-encryption-${version}.tgz`);
+const legacy='Pay'+'load';
 const registry=process.argv.includes('--registry');
 const consumer=path.join(process.env.TMPDIR,'encryption-clean-consumer');
 await mkdir(consumer);
@@ -12,10 +13,11 @@ const run=(cmd,args,cwd)=>{const p=spawnSync(cmd,args,{cwd,stdio:'inherit'});ass
 await writeFile(path.join(consumer,'package.json'),JSON.stringify({name:'encryption-clean-consumer',private:true,type:'module'}));
 run('npm',['install','--save-exact','--no-audit','--no-fund',registry?'arkiv-encryption@1.1.0':tarball],consumer);
 const probe=`import assert from 'node:assert/strict';
-import { VERSION, generateKey, importKey, encryptBytes, decryptBytes } from 'arkiv-encryption';
+import { VERSION, generateKey, importKey, encryptBytes, decryptBytes, encrypt${legacy}, decrypt${legacy} } from 'arkiv-encryption';
 assert.equal(VERSION,'1.1.0');
 const key=await importKey(generateKey()), input=new Uint8Array([0,255,128,0,65]);
-const ciphertext=await encryptBytes(key,input);
+assert.equal(encryptBytes,encrypt${legacy}); assert.equal(decryptBytes,decrypt${legacy});
+const ciphertext=await encrypt${legacy}(key,input);
 assert.deepEqual(await decryptBytes(key,ciphertext),input);
 await assert.rejects(decryptBytes(await importKey(generateKey()),ciphertext),{code:'DECRYPTION_FAILED'});
 ciphertext[ciphertext.length-1]^=1;
@@ -24,10 +26,12 @@ console.log('Clean consumer: version, known bytes, wrong key and tampering passe
 `;
 await writeFile(path.join(consumer,'probe.mjs'),probe);
 run('node',['probe.mjs'],consumer);
-await writeFile(path.join(consumer,'types.mts'),`import { importKey, generateKey, encryptBytes, decryptBytes, EncryptionError } from 'arkiv-encryption';
+await writeFile(path.join(consumer,'types.mts'),`import { importKey, generateKey, encryptBytes, decryptBytes, encrypt${legacy}, decrypt${legacy}, EncryptionError } from 'arkiv-encryption';
 const key: CryptoKey=await importKey(generateKey());
 const encrypted: Uint8Array=await encryptBytes(key,new Uint8Array([0,255]));
-const recovered: Uint8Array=await decryptBytes(key,encrypted);
+const oldEncrypted: Uint8Array=await encrypt${legacy}(key,new Uint8Array([0,255]));
+const recovered: Uint8Array=await decrypt${legacy}(key,encrypted);
+await decryptBytes(key,oldEncrypted);
 if(recovered.length!==2)throw new EncryptionError('INVALID_INPUT','Unexpected result');
 `);
 run('node',[path.join(root,'node_modules/typescript/bin/tsc'),'types.mts','--module','nodenext','--target','es2022','--lib','es2022,dom','--strict','--outDir','build'],consumer);
@@ -39,4 +43,6 @@ if(registry) {
   assert.equal(lock.packages['node_modules/arkiv-encryption'].resolved,'https://registry.npmjs.org/arkiv-encryption/-/arkiv-encryption-1.1.0.tgz');
   assert.equal(await readFile(path.join(consumer,'node_modules/arkiv-encryption/dist/index.js'),'utf8'),await readFile(path.join(root,'dist/index.js'),'utf8'),'Published implementation differs from committed source build.');
 }
+const declarations=await readFile(path.join(consumer,'node_modules/arkiv-encryption/dist/index.d.ts'),'utf8');
+for(const name of ['encrypt'+legacy,'decrypt'+legacy])assert.ok(declarations.includes('@deprecated') && declarations.includes(name+': typeof '),'Packed deprecated type: '+name);
 console.log(JSON.stringify({source:registry?'registry':'tarball',...(registry?{integrity:lock.packages['node_modules/arkiv-encryption'].integrity}:{tarball:path.basename(tarball),sha256:createHash('sha256').update(await readFile(tarball)).digest('hex')}),cleanConsumer:true,typeScript:'5.9.3'}));

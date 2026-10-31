@@ -1,0 +1,13 @@
+[
+  {
+    "file": "docs/verification.md",
+    "revision": "0638999335686dd66492ef8e3753a34a95917a38",
+    "sha256": "1225cfdd9a3c3ebf368d0fe9ed364c739be5374f4dac9ba225383b03ff61295a",
+    "lines": [
+      "The developer requested a revised English sample, visible key controls, fixed Tiramisu, clearer explorer/pay\u006coad explanations and comparison queries. A real [Claude Design reference](https://claude.ai/design/p/e998f7d1-d811-4738-912c-4ae3d5531096) was generated with the selected Arkiv Design System and inspected before adapting its create/inspect layout. The sample retains the existing SDK/wallet transport and published npm `0.1.0`; the package API and ciphertext format did not change.",
+      "- **Explorer:** the real entity route showed content type, pay\u006coad byte count and operation history. The UI therefore describes it as a summary and shows full pay\u006coad bytes itself, separately from attributes. Entity and transaction links are distinct.",
+      "| Pay\u006coad | 85 bytes; the default English note is 57 UTF-8 bytes |",
+      "[Second transaction](https://indexer.tiramisu.db-chain.testnet.arkiv.network/tx/0xe2c0a872a1be180072d2a1730875f5f8bc8cf11302a1a866b494855e84e26180). Both receipts report success and 86,664 gas used. The pay\u006coad is 70 bytes, content type `application/vnd.arkiv.encrypted.v1`, and the only application attribute is `app`. Direct SDK retrieval and browser DOM recovered the exact UTF-8 bytes of the sample note. Wrong-key decryption rejected. A separate browser context retrieved the first entity without a wallet."
+    ]
+  }
+]

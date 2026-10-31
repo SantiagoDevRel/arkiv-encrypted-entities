@@ -1,3 +1,5 @@
+> Historical dated evidence, preserved from 0638999. For current API and installation guidance, use the root README and AGENTS.md.
+
 # Rabdi / SDK 1.0.0 release verification
 
 `arkiv-encryption@1.0.0` is published on npm. The registry artifact exactly matches the approved tarball, SHA-256 `c52b55c870fa2724eaf7b42490cbf4cb31d21553c7913169f1f9437bcf1a81e1`, npm shasum `7267353971486907708037f3609cdaf7a28f2128`. Integrity: `sha512-oA2EOyeNKwd//rExITO6u4iS7nu8E8xw/Mn58YY80R4YAzgydivpn4+jDCO4B2kwAltrEKSurXVzZwLm4LcJdg==`.
