@@ -2,7 +2,7 @@
 
 # Consumer guide: arkiv-encryption
 
-Read [README.md](README.md) explicitly: it defines installation, crypto API, wire format, limits, public metadata, key custody, Rabdi integration and release status. Read [sample/AGENTS.md](sample/AGENTS.md) when using the wallet sample.
+Read [README.md](README.md) explicitly: it defines installation, crypto API, wire format, limits, public metadata, key custody, Rabdi integration and release status. Read [sample/AGENTS.md](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/rabdi/sdk-1.0-20261030/sample/AGENTS.md) when using the wallet sample.
 
 ## Integration decisions
 
