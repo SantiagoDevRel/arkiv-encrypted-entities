@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="dark" /><meta name="referrer" content="no-referrer" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://rpc.tiramisu.db-chain.testnet.arkiv.network ws://localhost:* ws://127.0.0.1:*; img-src 'self' data:; base-uri 'none'; form-action 'none'; object-src 'none'" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' ws://localhost:* ws://127.0.0.1:*; img-src 'self' data:; base-uri 'none'; form-action 'none'; object-src 'none'" />
   <title>Arkiv Encryption</title>
   <link rel="stylesheet" href="/src/style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -19,11 +19,11 @@
     <nav class="topbar" aria-label="Sample navigation">
       <a class="brand" href="https://arkiv.network" target="_blank" rel="noreferrer" aria-label="Arkiv website"><img src="/brand/arkiv-wordmark-white.svg" alt="Arkiv" width="130" height="30" /></a>
       <span class="product-name">Arkiv Encryption</span>
-      <div class="wallet-controls"><span class="network">Tiramisu testnet</span><button id="connect" class="primary" type="button">Connect wallet</button></div>
+      <div class="wallet-controls"><span class="network">Rabdi testnet</span><button id="connect" class="primary" type="button">Connect wallet</button></div>
     </nav>
     <p id="wallet-status" class="help wallet-status" role="status"></p>
     <header class="intro">
-      <p class="eyebrow">[ PAYLOAD ENCRYPTION ]</p>
+      <p class="eyebrow">[ ENTITY ENCRYPTION ]</p>
       <h1>A private note. A public entity.</h1>
       <p>Store an encrypted note. Compare what you can read with and without its key.</p>
     </header>
@@ -32,7 +32,7 @@
       <div class="section-heading"><span class="step" aria-hidden="true">01</span><div><h2 id="create-heading">Create an encrypted note</h2></div></div>
       <form id="write-form" class="panel">
         <div class="create-grid">
-          <div><div class="label-row"><label for="note">Your note</label></div><textarea id="note" rows="5">Hello Arkiv. Only my encryption key can unlock this note.</textarea><p class="help">Stored in the payload, encrypted.</p></div>
+          <div><div class="label-row"><label for="note">Your note</label></div><textarea id="note" rows="5">Hello Arkiv. Only my encryption key can unlock this note.</textarea><p class="help">Stored in the ciphertext, encrypted.</p></div>
           <div>
             <div class="label-row"><label for="secret">Encryption key</label><button id="generate" class="outline generate-button" type="button">Generate key</button></div>
             <div class="secret-field"><input id="secret" type="password" autocomplete="off" spellcheck="false" aria-describedby="secret-help" placeholder="Generate or paste key" /><button id="reveal" class="eye-button" type="button" aria-label="Show encryption key" aria-controls="secret" aria-pressed="false" title="Show encryption key"><svg aria-hidden="true"><use href="#eye"/></svg></button></div>
@@ -41,11 +41,11 @@
             <p id="key-status" class="help" role="status"></p>
           </div>
         </div>
-        <div class="write-actions"><button id="write" class="primary" type="submit">Encrypt &amp; store</button><p class="help">Need funds? <a href="https://hub.arkiv.network/faucet" target="_blank" rel="noreferrer">Get test GLM ↗</a></p></div>
-        <details class="limits"><summary>Size, expiration &amp; public metadata</summary><p class="help">Up to 100,000 UTF-8 bytes. Entity Expiration is approximately 24 hours; it does not erase history or other copies. Attributes, wallet addresses, identifiers, content type, size and expiration stay public. Payload size reveals the exact original byte length.</p></details>
+        <div class="write-actions"><button id="write" class="primary" type="submit">Encrypt &amp; store</button><p class="help">Configure Rabdi in your wallet with your own <a href="https://hub.arkiv.network/access-keys" target="_blank" rel="noreferrer">access key</a>. Need funds? <a href="https://hub.arkiv.network/faucet" target="_blank" rel="noreferrer">Get test GLM ↗</a></p></div>
+        <details class="limits"><summary>Size, expiration &amp; public metadata</summary><p class="help">Up to 100,000 UTF-8 bytes. Entity Expiration is approximately 24 hours; it does not erase history or other copies. Attributes, wallet addresses, identifiers, content type, size and expiration stay public. Ciphertext size reveals the exact original byte length.</p></details>
       </form>
       <p id="write-status" class="operation-status" role="status">No note stored yet.</p>
-      <div id="write-result" class="receipt" hidden><p class="eyebrow">[ STORED ON TIRAMISU ]</p><p class="help">Entity ID (public) · save this ID too.</p><code id="created-key"></code><div class="links"><a id="created-entity" target="_blank" rel="noreferrer" hidden>View entity ↗</a><a id="transaction" target="_blank" rel="noreferrer">View transaction ↗</a><a href="#inspect-heading">Inspect its payload below ↓</a></div></div>
+      <div id="write-result" class="receipt" hidden><p class="eyebrow">[ STORED ON RABDI ]</p><p class="help">Entity ID (public) · save this ID too.</p><code id="created-key"></code><div class="links"><a id="created-entity" target="_blank" rel="noreferrer" hidden>View entity ↗</a><a id="transaction" target="_blank" rel="noreferrer">View transaction ↗</a><a href="#inspect-heading">Inspect its ciphertext below ↓</a></div></div>
     </section>
 
     <section aria-labelledby="inspect-heading" class="inspect-section">
@@ -60,7 +60,7 @@
           <button id="read-public" class="outline" type="button">Query without encryption key</button>
           <p id="public-status" class="operation-status" role="status">No query yet.</p>
           <div id="public-result" hidden>
-            <div class="message-result"><h3>Encrypted message</h3><pre id="public-payload" class="message-output ciphertext"></pre><p class="help"><span id="public-bytes"></span> · encrypted payload</p></div>
+            <div class="message-result"><h3>Encrypted message</h3><pre id="public-payload" class="message-output ciphertext"></pre><p class="help"><span id="public-bytes"></span> · encrypted ciphertext</p></div>
           </div>
         </article>
         <article class="panel query-card" aria-labelledby="read">
@@ -69,15 +69,15 @@
           <p id="read-status" class="operation-status" role="status">No query yet.</p>
           <div id="read-network-result" hidden>
             <div id="read-result" class="message-result" hidden><h3>Decrypted message</h3><pre id="plaintext" class="message-output decrypted"></pre><p class="help">Decrypted in this browser.</p></div>
-            <div id="read-locked" class="message-result"><h3>Encrypted message</h3><pre id="read-payload" class="message-output ciphertext"></pre><p class="help"><span id="read-bytes"></span> · encrypted payload</p></div>
+            <div id="read-locked" class="message-result"><h3>Encrypted message</h3><pre id="read-payload" class="message-output ciphertext"></pre><p class="help"><span id="read-bytes"></span> · encrypted ciphertext</p></div>
           </div>
         </article>
       </div>
       <p id="comparison-status" class="help" role="status"></p>
       <details id="network-result" class="network-details panel" hidden><summary>Network response</summary><p id="network-caption" class="help"></p><pre id="network-entity" class="data-block network-json"></pre></details>
-      <div id="explorer-result" class="explorer-note" hidden><a id="entity-explorer" target="_blank" rel="noreferrer">View entity in explorer ↗</a><details><summary>What does the explorer show?</summary><p class="help">Entity details, payload size and history. For the full encrypted payload, use the bytes shown above.</p></details></div>
+      <div id="explorer-result" class="explorer-note" hidden><a id="entity-explorer" target="_blank" rel="noreferrer">View entity in explorer ↗</a><details><summary>What does the explorer show?</summary><p class="help">Entity details, ciphertext size and history. For the full encrypted ciphertext, use the bytes shown above.</p></details></div>
     </section>
-    <footer><div class="links"><a href="https://github.com/SantiagoDevRel/arkiv-encrypted-entities">Source &amp; docs ↗</a><a href="https://www.npmjs.com/package/arkiv-encryption" id="version"></a></div><details><summary>Privacy &amp; key storage</summary><p>Keys and decrypted text stay in this tab; reloading clears them. No analytics or local secret storage. Encryption authenticates the payload, not its owner or public attributes.</p></details></footer>
+    <footer><div class="links"><a href="https://github.com/SantiagoDevRel/arkiv-encrypted-entities">Source &amp; docs ↗</a><a href="https://www.npmjs.com/package/arkiv-encryption" id="version"></a></div><details><summary>Privacy &amp; key storage</summary><p>Keys and decrypted text stay in this tab; reloading clears them. No analytics or local secret storage. Encryption authenticates the ciphertext, not its owner or public attributes.</p></details></footer>
   </main><script type="module" src="/src/main.ts"></script>
 </body>
 </html>

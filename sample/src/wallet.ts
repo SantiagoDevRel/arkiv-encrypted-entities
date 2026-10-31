@@ -1,9 +1,8 @@
-// Session validation and exact-calldata gas preflight adapted from arkiv-graph's wallet client.
-import { createPublicClient, createWalletClient } from '@arkiv-network/sdk';
-import { tiramisu } from '@arkiv-network/sdk/chains';
+﻿import { createPublicClient, createWalletClient, EntityMutationError } from '@arkiv-network/sdk';
+import { rabdi } from '@arkiv-network/sdk/chains';
 import { custom, http, type Hex } from 'viem';
-import { estimateGas } from 'viem/actions';
-
+import { estimateGas, getGasPrice } from 'viem/actions';
+import type { Operation } from './transaction';
 export interface Provider {
   request(args: { method: string; params?: unknown }): Promise<unknown>;
   on?(event: string, handler: () => void): void;
@@ -12,12 +11,13 @@ export interface Provider {
   isMetaMask?: boolean;
 }
 export class UserError extends Error {}
-// SDK 0.8.0's Tiramisu export has no explorer; reuse the verified arkiv-graph transaction destination.
-export const EXPLORER_URL = 'https://indexer.tiramisu.db-chain.testnet.arkiv.network';
+// SDK metadata only: no request uses this placeholder URL or a bundled access key.
+export const chain = rabdi({ accessKey: 'wallet-configured' });
+export const EXPLORER_URL = 'https://rabdi.explorer.arkiv.network';
 const announced: Provider[] = [];
 window.addEventListener('eip6963:announceProvider', event => {
-  const provider = (event as CustomEvent<{ provider: Provider }>).detail?.provider;
-  if (provider && typeof provider.request === 'function' && !announced.includes(provider)) announced.push(provider);
+  const p = (event as CustomEvent<{ provider: Provider }>).detail?.provider;
+  if (p && typeof p.request === 'function' && !announced.includes(p)) announced.push(p);
 });
 window.dispatchEvent(new Event('eip6963:requestProvider'));
 export function provider(): Provider {
@@ -27,23 +27,18 @@ export function provider(): Provider {
   if (!selected) throw new UserError('No wallet found. Open this page with MetaMask or Rabby installed and unlocked.');
   return selected;
 }
-export function publicClient(rpc: string = tiramisu.rpcUrls.default.http[0]) {
-  let url: URL;
-  try { url = new URL(rpc); } catch { throw new UserError('Enter a valid RPC URL.'); }
-  if (url.protocol !== 'https:' && !(url.protocol === 'http:' && ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname))) throw new UserError('Use HTTPS. HTTP is only allowed on localhost.');
-  if (url.username || url.password || url.hash) throw new UserError('The RPC URL must not contain a username, password or fragment.');
-  return createPublicClient({ chain: tiramisu, transport: http(rpc, { timeout: 20000, retryCount: 0, fetchOptions: { cache: 'no-store' } }) });
+export function publicClient() {
+  return createPublicClient({ chain, transport: http('/api/rpc', { timeout: 20000, retryCount: 0, fetchOptions: { cache: 'no-store' } }) });
 }
 export async function connect(p: Provider): Promise<Hex> {
   const accounts = await p.request({ method: 'eth_requestAccounts' }) as string[];
   if (!accounts[0] || !/^0x[0-9a-fA-F]{40}$/.test(accounts[0])) throw new UserError('The wallet did not share an account.');
-  const chainId = `0x${tiramisu.id.toString(16)}`;
-  if (Number(await p.request({ method: 'eth_chainId' })) !== tiramisu.id) {
-    try { await p.request({ method: 'wallet_switchEthereumChain', params: [{ chainId }] }); }
+  if (Number(await p.request({ method: 'eth_chainId' })) !== chain.id) {
+    // Visitors configure their own authorized RPC in the wallet. Never add a server key to a wallet.
+    try { await p.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: `0x${chain.id.toString(16)}` }] }); }
     catch (error) {
-      if ((error as { code?: number }).code !== 4902) throw error;
-      await p.request({ method: 'wallet_addEthereumChain', params: [{ chainId, chainName: tiramisu.name, rpcUrls: tiramisu.rpcUrls.default.http, nativeCurrency: tiramisu.nativeCurrency, blockExplorerUrls: [EXPLORER_URL] }] });
-      await p.request({ method: 'wallet_switchEthereumChain', params: [{ chainId }] });
+      if ((error as { code?: number }).code === 4902) throw new UserError('Configure Rabdi (7794095) in your wallet using your own access key from hub.arkiv.network/access-keys, then reconnect.');
+      throw error;
     }
   }
   await assertSession(p, accounts[0] as Hex);
@@ -51,24 +46,27 @@ export async function connect(p: Provider): Promise<Hex> {
 }
 export async function assertSession(p: Provider, account: Hex) {
   const accounts = await p.request({ method: 'eth_accounts' }) as string[];
-  if (accounts[0]?.toLowerCase() !== account.toLowerCase() || Number(await p.request({ method: 'eth_chainId' })) !== tiramisu.id) {
-    throw new UserError('The account or network changed. Reconnect on Tiramisu before signing.');
-  }
+  if (accounts[0]?.toLowerCase() !== account.toLowerCase() || Number(await p.request({ method: 'eth_chainId' })) !== chain.id) throw new UserError('The account or network changed. Reconnect on Rabdi before signing.');
 }
-export function writer(p: Provider, account: Hex, rpc: ReturnType<typeof publicClient>, onSent: (hash: Hex) => void) {
-  return createWalletClient({ account, chain: tiramisu, transport: custom({ request: async args => {
-    // Wallets can broadcast successfully but hang on custom-chain receipt reads.
-    // Keep all SDK reads on the explicit, timeout-bounded Tiramisu RPC.
+export function confirmedRevertHash(error: unknown): Hex | undefined {
+  return error instanceof EntityMutationError && error.txHash && error.message.startsWith(`Transaction ${error.txHash} reverted.`) ? error.txHash : undefined;
+}
+export function writer(p: Provider, account: Hex, rpc: ReturnType<typeof publicClient>, op: Operation, minimumGas: bigint, onSent: (hash: Hex) => void) {
+  return createWalletClient({ account, chain, transport: custom({ request: async args => {
     if (args.method !== 'eth_sendTransaction') return rpc.transport.request(args);
     await assertSession(p, account);
-    if (await rpc.getChainId() !== tiramisu.id) throw new UserError('The RPC is not on Tiramisu.');
+    if (await rpc.getChainId() !== chain.id) throw new UserError('The RPC is not on Rabdi.');
     const tx = (args.params as [{ from?: string; to?: Hex; data?: Hex; value?: Hex }])[0];
-    if (tx.from?.toLowerCase() !== account.toLowerCase() || tx.to?.toLowerCase() !== '0x4400000000000000000000000000000000000044' || !tx.data || BigInt(tx.value ?? 0) !== 0n) throw new UserError('The transaction does not match an entity write from this sample.');
-    const gas = await estimateGas(rpc, { account, to: tx.to, data: tx.data, value: 0n });
-    if (gas <= 0n) throw new UserError('Could not estimate gas for this write.');
-    await assertSession(p, account);
-    const hash = await p.request({ ...args, params: [{ ...tx, gas: `0x${((gas * 120n + 99n) / 100n).toString(16)}` }] });
-    if (typeof hash === 'string' && /^0x[0-9a-fA-F]{64}$/.test(hash)) onSent(hash as Hex);
-    return hash;
+    if (tx.from?.toLowerCase() !== account.toLowerCase() || tx.to?.toLowerCase() !== '0x4400000000000000000000000000000000000044' || !tx.data || BigInt(tx.value ?? 0) !== 0n) throw new UserError('Unexpected entity transaction.');
+    const estimate = await estimateGas(rpc, { account, to: tx.to, data: tx.data, value: 0n, blockTag: 'latest' });
+    const head = await rpc.getBlock({ blockTag: 'latest' });
+    const gas = [1_000_000n, minimumGas, 2n * estimate].reduce((a, b) => a > b ? a : b);
+    if (estimate <= 0n || gas > head.gasLimit / 2n) throw new UserError('This write exceeds the safe gas budget. Use a smaller note.');
+    const gasPrice = await getGasPrice(rpc);
+    const nonce = await rpc.getTransactionCount({ address: account, blockTag: 'latest' });
+    await assertSession(p, account); op.gas = gas;
+    const hash = await p.request({ method: 'eth_sendTransaction', params: [{ ...tx, gas: `0x${gas.toString(16)}`, gasPrice: `0x${gasPrice.toString(16)}`, nonce: `0x${nonce.toString(16)}` }] });
+    if (typeof hash !== 'string' || !/^0x[0-9a-fA-F]{64}$/.test(hash)) throw new UserError('No transaction hash. Check before retrying.');
+    op.hash = hash as Hex; onSent(hash as Hex); return hash;
   } }, { retryCount: 0 }) });
 }
