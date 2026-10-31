@@ -12,7 +12,8 @@ export interface Provider {
 }
 export class UserError extends Error {}
 // SDK metadata only: no request uses this placeholder URL or a bundled access key.
-export const chain = rabdi({ accessKey: 'wallet-configured' });
+// Receipt polling uses only latest head numbers and the submitted hash. Replacements require manual reconciliation.
+export const chain = { ...rabdi({ accessKey: 'wallet-configured' }), supportsTransactionReplacementDetection: false } as const;
 export const EXPLORER_URL = 'https://rabdi.explorer.arkiv.network';
 const announced: Provider[] = [];
 window.addEventListener('eip6963:announceProvider', event => {

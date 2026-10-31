@@ -1,7 +1,8 @@
 ﻿import { test } from 'node:test';
 import assert from 'node:assert/strict';
 globalThis.window = new EventTarget();
-const { connect, writer, assertSession } = await import('../src/wallet.ts');
+const { connect, writer, assertSession, chain } = await import('../src/wallet.ts');
+test('SDK receipt polling does not request transaction replacement scans through the restricted proxy',()=>assert.equal(chain.supportsTransactionReplacementDetection,false));
 const account = '0x1111111111111111111111111111111111111111';
 const target = '0x4400000000000000000000000000000000000044';
 const hash = '0x' + 'ab'.repeat(32);
