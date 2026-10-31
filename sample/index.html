@@ -60,7 +60,7 @@
           <button id="read-public" class="outline" type="button">Query without encryption key</button>
           <p id="public-status" class="operation-status" role="status">No query yet.</p>
           <div id="public-result" hidden>
-            <div class="message-result"><h3>Encrypted message</h3><pre id="public-payload" class="message-output ciphertext"></pre><p class="help"><span id="public-bytes"></span> · encrypted ciphertext</p></div>
+            <div class="message-result"><h3>Encrypted message</h3><pre id="public-ciphertext" class="message-output ciphertext"></pre><p class="help"><span id="public-bytes"></span> · encrypted ciphertext</p></div>
           </div>
         </article>
         <article class="panel query-card" aria-labelledby="read">
@@ -69,7 +69,7 @@
           <p id="read-status" class="operation-status" role="status">No query yet.</p>
           <div id="read-network-result" hidden>
             <div id="read-result" class="message-result" hidden><h3>Decrypted message</h3><pre id="plaintext" class="message-output decrypted"></pre><p class="help">Decrypted in this browser.</p></div>
-            <div id="read-locked" class="message-result"><h3>Encrypted message</h3><pre id="read-payload" class="message-output ciphertext"></pre><p class="help"><span id="read-bytes"></span> · encrypted ciphertext</p></div>
+            <div id="read-locked" class="message-result"><h3>Encrypted message</h3><pre id="read-ciphertext" class="message-output ciphertext"></pre><p class="help"><span id="read-bytes"></span> · encrypted ciphertext</p></div>
           </div>
         </article>
       </div>

@@ -1,3 +1,5 @@
+> Historical evidence for an earlier release. It is not current SDK 1.0/Rabdi guidance or evidence of the pending 1.1.0 patch. Use the root README and AGENTS.md for the published 1.0.0 baseline and the phase-1 changes.
+
 # Verification: 0.1.0
 
 ## Renamed release — 2026-09-09
@@ -31,12 +33,12 @@ Executed on 2026-09-08: Node 22.22.3, TypeScript 5.9.3, eight crypto tests inclu
 
 ## English comparison UI revision — 2026-09-08
 
-The developer requested a revised English sample, visible key controls, fixed Tiramisu, clearer explorer/payload explanations and comparison queries. A real [Claude Design reference](https://claude.ai/design/p/e998f7d1-d811-4738-912c-4ae3d5531096) was generated with the selected Arkiv Design System and inspected before adapting its create/inspect layout. The sample retains the existing SDK/wallet transport and published npm `0.1.0`; the package API and ciphertext format did not change.
+The developer requested a revised English sample, visible key controls, fixed Tiramisu, clearer explorer/binary data explanations and comparison queries. A real [Claude Design reference](https://claude.ai/design/p/e998f7d1-d811-4738-912c-4ae3d5531096) was generated with the selected Arkiv Design System and inspected before adapting its create/inspect layout. The sample retains the existing SDK/wallet transport and published npm `0.1.0`; the package API and ciphertext format did not change.
 
 - **Checks:** production build and 15 sample tests passed, including registry provenance and automatic Tiramisu switch/add/rejection. No new dependencies were introduced.
 - **Real reads:** a browser without a wallet queried a real Tiramisu entity both ways. Captured `arkiv_query` parameters were equal. Both panels displayed identical ciphertext and public typed attributes; keyed recovery matched the stored text. Captured POSTs contained neither the encryption key nor plaintext. The public query worked with empty and malformed key fields. A well-formed wrong key fetched public ciphertext, failed authentication and displayed no stale plaintext.
 - **UI:** screenshots and geometry at 390/599/601/768/899/901/1440px; empty, loading, error and result states, dark mode, loaded fonts and 200% CSS zoom stress check. No page overflow. Mouse and keyboard toggled both eye controls. An isolated injected-wallet test changed the session during retrieval: both keys were cleared and masked, and late plaintext was not rendered. Wallet behavior in that race test was simulated; reads still used the real RPC. Actual browser-menu zoom and other browser engines were not separately tested.
-- **Explorer:** the real entity route showed content type, payload byte count and operation history. The UI therefore describes it as a summary and shows full payload bytes itself, separately from attributes. Entity and transaction links are distinct.
+- **Explorer:** the real entity route showed content type, binary data byte count and operation history. The UI therefore describes it as a summary and shows full binary data bytes itself, separately from attributes. Entity and transaction links are distinct.
 
 The revised flow also performed one authorized real write through Rabby / Arkiv Wallet, only on Tiramisu:
 
@@ -45,7 +47,7 @@ The revised flow also performed one authorized real write through Rabby / Arkiv 
 | Transaction | `0xea5b31b57e13cce0f8f8be0d7addbcbec91c2a439da5bee7ae3c9b649c732290` |
 | Entity | `0x600bfc33e352452f375a559ad55afa79ebf863a40c645a65a04fad540f227d61` |
 | Result | Success, block 199478, gas used 86,904 |
-| Payload | 85 bytes; the default English note is 57 UTF-8 bytes |
+| Binary data | 85 bytes; the default English note is 57 UTF-8 bytes |
 | Attributes | Only `app`, containing `encrypted-entities-sample` |
 | End-to-end | Read-key autofill, identical public/keyed ciphertext, exact original English message and byte-for-byte UI success |
 
@@ -104,7 +106,7 @@ Two small test-note entities were created by the authorized wallet. No wallet ke
 | Initial integration | `0xb453923723b4f3944f54fbdc1de1b52bd40f51fdcdf33d62800b4a14e7f158ae` | `0x86d0ad8f07f7861ff7e2c3c30d360c7fc9f6489efe8470305b94fdb8db3ad0f4` | 197482; confirmed, but wallet receipt reads stalled in the UI |
 | After receipt-routing fix | `0xe2c0a872a1be180072d2a1730875f5f8bc8cf11302a1a866b494855e84e26180` | `0xe85d62326f3e78e3d6b828506f653761daaa0eafc093ad7eb988d9e08b4117b3` | 197750; confirmed and reported in UI |
 
-[Second transaction](https://indexer.tiramisu.db-chain.testnet.arkiv.network/tx/0xe2c0a872a1be180072d2a1730875f5f8bc8cf11302a1a866b494855e84e26180). Both receipts report success and 86,664 gas used. The payload is 70 bytes, content type `application/vnd.arkiv.encrypted.v1`, and the only application attribute is `app`. Direct SDK retrieval and browser DOM recovered the exact UTF-8 bytes of the sample note. Wrong-key decryption rejected. A separate browser context retrieved the first entity without a wallet.
+[Second transaction](https://indexer.tiramisu.db-chain.testnet.arkiv.network/tx/0xe2c0a872a1be180072d2a1730875f5f8bc8cf11302a1a866b494855e84e26180). Both receipts report success and 86,664 gas used. The binary data is 70 bytes, content type `application/vnd.arkiv.encrypted.v1`, and the only application attribute is `app`. Direct SDK retrieval and browser DOM recovered the exact UTF-8 bytes of the sample note. Wrong-key decryption rejected. A separate browser context retrieved the first entity without a wallet.
 
 The fix keeps signing/session checks in Rabby and routes SDK reads, including receipts, through the explicit timeout-bounded RPC. Eleven wallet tests cover this separation, gas buffering, wallet rejection, mismatched accounts/networks and unexpected transaction targets/value. Those eleven tests use mocks, not live wallet signatures.
 

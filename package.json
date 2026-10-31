@@ -1,13 +1,26 @@
 {
   "name": "arkiv-encryption",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "AES-256-GCM encryption for Arkiv entity bytes, using the same WebCrypto envelope in Node and browsers.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
-  "files": ["dist", "README.md", "AGENTS.md", "CLAUDE.md", "LICENSE"],
-  "engines": { "node": ">=22" },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
@@ -15,10 +28,22 @@
     "test": "npm run build && node --test test/*.test.mjs",
     "prepack": "npm run build"
   },
-  "devDependencies": { "typescript": "5.9.3", "@arkiv-network/sdk": "1.0.0" },
-  "peerDependencies": { "@arkiv-network/sdk": "^1.0.0" },
-  "peerDependenciesMeta": { "@arkiv-network/sdk": { "optional": true } },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "@arkiv-network/sdk": "1.0.0"
+  },
+  "peerDependencies": {
+    "@arkiv-network/sdk": "^1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@arkiv-network/sdk": {
+      "optional": true
+    }
+  },
   "license": "MIT",
-  "repository": { "type": "git", "url": "https://github.com/SantiagoDevRel/arkiv-encrypted-entities.git" },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SantiagoDevRel/arkiv-encrypted-entities.git"
+  },
   "homepage": "https://github.com/SantiagoDevRel/arkiv-encrypted-entities#readme"
 }

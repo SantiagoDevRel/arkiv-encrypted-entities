@@ -1,3 +1,5 @@
+> Historical evidence for an earlier release. It is not current SDK 1.0/Rabdi guidance or evidence of the pending 1.1.0 patch. Use the root README and AGENTS.md for the published 1.0.0 baseline and the phase-1 changes.
+
 # Hub publication — 2026-09-09
 
 [ARKIV-ENCRYPTION is listed on staging](https://stage.hub.arkiv.network/tools#tool-arkiv-encryption), using published **arkiv-encryption@0.1.0** and the [public wallet sample](https://arkiv-encryption.vercel.app). Package, consumer and real Tiramisu evidence is recorded in [verification.md](verification.md).

@@ -24,3 +24,5 @@ Read [README.md](README.md) explicitly: it defines installation, crypto API, wir
 ## Verify
 
 Use a clean consumer directory. Check actual installed versions, TypeScript imports, known bytes, wrong-key and tampering failures. SDK evidence must include actual write/read/decrypt byte equality; distinguish mocks from live evidence. Inspect empty/loading/errors and small/medium/large widths. Report missing checks honestly. Historical evidence does not certify subsequent changes.
+
+Release status: arkiv-encryption@1.0.0 is published for SDK 1.0.0 / Rabdi. This branch prepares 1.1.0; it has not been published. Samples retain their exact registry pins until the phase-2 release sequence.

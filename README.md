@@ -1,8 +1,8 @@
 ﻿# arkiv-encryption
 
-Encrypt bytes locally with AES-256-GCM before storing them in Arkiv entities. Indexed public columns remain queryable; encrypted content cannot be filtered. The package uses WebCrypto and does not sign transactions or replace the Arkiv SDK.
+Encrypt binary data locally with AES-256-GCM for a `bytes` column. Attributes stay public. Indexed public columns remain queryable; encrypted content cannot be filtered. The package uses WebCrypto and does not sign transactions or replace the Arkiv SDK.
 
-**Testnet use only. Version 1.0.0 is published on npm.** The sample consumes exact registry `arkiv-encryption@1.0.0` with SDK 1.0.0 on Rabdi. See [verification](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/v1.0.0/docs/rabdi-verification.md) and [breaking changes](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/v1.0.0/CHANGELOG.md).
+**Testnet use only. Version 1.1.0 is an unpublished candidate.** The deployed sample currently consumes exact registry `arkiv-encryption@1.0.0` with SDK 1.0.0 on Rabdi. See [verification](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/v1.0.0/docs/rabdi-verification.md) and [breaking changes](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/v1.0.0/CHANGELOG.md).
 
 - [npm](https://www.npmjs.com/package/arkiv-encryption)
 - [Source](https://github.com/SantiagoDevRel/arkiv-encrypted-entities)
@@ -14,23 +14,23 @@ Agents must explicitly open this README and `node_modules/arkiv-encryption/AGENT
 
 Node.js 22+ and WebCrypto are required. Crypto needs no wallet, funds, access key or SDK at runtime. The optional SDK peer is `^1.0.0`; the integration is developed against exactly 1.0.0. The crypto API and v1 envelope remain compatible with 0.1.0.
 
-Install the published release:
+Install after 1.1.0 is published (before publication, verify the packed candidate):
 
 ```sh
-npm install --save-exact arkiv-encryption@1.0.0
+npm install --save-exact arkiv-encryption@1.1.0
 ```
 
 ```js
-import { generateKey, importKey, encryptPayload, decryptPayload } from 'arkiv-encryption';
+import { generateKey, importKey, encryptBytes, decryptBytes } from 'arkiv-encryption';
 const secret = generateKey(); // Back up privately. Never log it or put it in an entity.
 const key = await importKey(secret);
-const ciphertext = await encryptPayload(key, 'Hello Arkiv');
-const recovered = await decryptPayload(key, ciphertext);
+const ciphertext = await encryptBytes(key, 'Hello Arkiv');
+const recovered = await decryptBytes(key, ciphertext);
 console.log(new TextDecoder().decode(recovered)); // Hello Arkiv
 console.log(ciphertext.length); // 39
 ```
 
-The published registry tarball matches the reviewed `arkiv-encryption-1.0.0.tgz` byte for byte. TypeScript 5.9.3 is the pinned development compiler. Compile an `.mts` consumer with `--module nodenext --target es2022 --lib es2022,dom --strict`.
+Renamed in 1.1.0; the old names still work. The v1 envelope and function behavior are unchanged. TypeScript 5.9.3 is the pinned development compiler. Compile an `.mts` consumer with `--module nodenext --target es2022 --lib es2022,dom --strict`.
 
 ## Public API
 
@@ -38,8 +38,8 @@ The published registry tarball matches the reviewed `arkiv-encryption-1.0.0.tgz`
 | --- | --- |
 | `generateKey(): string` | Random 32-byte secret, encoded as 64 hex characters without `0x`. |
 | `importKey(raw: string \| Uint8Array): Promise<CryptoKey>` | Exact 64 hex characters or 32 bytes. Non-extractable AES-256-GCM handle; no password derivation. |
-| `encryptPayload(key, plaintext: string \| Uint8Array): Promise<Uint8Array>` | Strings are UTF-8. Fresh random IV. Up to 100,000 plaintext bytes. The API name remains compatible. |
-| `decryptPayload(key, envelope: Uint8Array): Promise<Uint8Array>` | Returns bytes only after authentication; rejects wrong keys and tampering. |
+| `encryptBytes(key, plaintext: string \| Uint8Array): Promise<Uint8Array>` | Strings are UTF-8. Fresh random IV. Up to 100,000 plaintext bytes.  |
+| `decryptBytes(key, envelope: Uint8Array): Promise<Uint8Array>` | Returns bytes only after authentication; rejects wrong keys and tampering. |
 | `CONTENT_TYPE` | `application/vnd.arkiv.encrypted.v1`, stored as a public string column. |
 | `ENVELOPE` | Frozen algorithm, IV/tag lengths and wire layout. |
 | `VERSION`, `MAX_PLAINTEXT_BYTES` | Package version and conservative input policy, not a chain maximum. |
@@ -62,7 +62,7 @@ import { createPublicClient } from '@arkiv-network/sdk';
 import { rabdi } from '@arkiv-network/sdk/chains';
 import { defineSchema, str, bytes } from '@arkiv-network/sdk/schema';
 import { http, hexToBytes } from 'viem';
-import { CONTENT_TYPE, decryptPayload } from 'arkiv-encryption';
+import { CONTENT_TYPE, decryptBytes } from 'arkiv-encryption';
 
 const Notes = defineSchema('arkiv-encryption-v1', {
   app: str().indexed(),
@@ -74,7 +74,7 @@ const Notes = defineSchema('arkiv-encryption-v1', {
 const publicClient = createPublicClient({ chain: rabdi({ accessKey }), transport: http() });
 const entity = await publicClient.getEntity(entityKey, Notes);
 if (entity.contentType.value !== CONTENT_TYPE) throw new Error('Unexpected encrypted format');
-const recovered = await decryptPayload(key, hexToBytes(entity.ciphertext.value));
+const recovered = await decryptBytes(key, hexToBytes(entity.ciphertext.value));
 ```
 
 The complete [sample implementation](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/v1.0.0/sample/src/main.ts) encrypts before `wallet.createEntity(Notes, values, { expiration }, txParams)`. Its [wallet transport](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/v1.0.0/sample/src/wallet.ts) obtains the exact unsigned SDK calldata, estimates it at `latest`, and sets `gas = max(1_000_000, 2 * estimate, retryMinimum)` plus explicit `gasPrice` and a nonce read at `latest`. The estimate must succeed before signing. Gas must not exceed half the latest block gas limit; use a smaller entity or split batches otherwise. A caller's larger gas minimum is allowed only within that same cap. Browser wallets receive these explicit fields so they do not choose a lower estimate.
@@ -129,4 +129,6 @@ npm test
 npm run build
 ```
 
-Run installs/builds/tests on the DGX under this workspace's project rules. Crypto tests verify native Node interoperability in both directions, empty/binary/maximum inputs and authentication failures. Sample tests cover registry provenance, wallet/session/gas checks, server read restrictions and the required persistent operation scenarios. [Release verification](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/v1.0.0/docs/rabdi-verification.md) distinguishes mocks, live testnet evidence and unverified browser wallet signing.
+Run `node --test test/vocabulary-guard.test.mjs` to check the complete tree, generated files and mutation cases. Run installs/builds/tests on the DGX under this workspace's project rules. Crypto tests verify native Node interoperability in both directions, empty/binary/maximum inputs and authentication failures. Sample tests cover registry provenance, wallet/session/gas checks, server read restrictions and the required persistent operation scenarios. [Release verification](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/v1.0.0/docs/rabdi-verification.md) distinguishes mocks, live testnet evidence and unverified browser wallet signing.
+
+Release status: arkiv-encryption@1.0.0 is published for SDK 1.0.0 / Rabdi. This branch prepares 1.1.0; it has not been published. Samples retain their exact registry pins until the phase-2 release sequence.
