@@ -1,8 +1,8 @@
-﻿# Encrypted notes sample — Rabdi candidate
+﻿# Encrypted notes sample — Rabdi
 
 Create an encrypted note, then compare the same public ciphertext with and without a locally entered encryption key. The UI uses the existing Arkiv layout and English copy. This is a testnet demonstration, not an independently audited privacy system.
 
-**Candidate status:** SDK **1.0.0**, viem **2.56.3**, TypeScript **5.9.3**, Vite **8.2.2**. The first-turn preview consumes the exact published **arkiv-encryption@0.1.0**; its AES-GCM format matches the 1.0.0 candidate. The new package is tested separately as a packed tarball. No npm 1.0.0 publication or production migration is claimed. See [verification](../docs/rabdi-verification.md).
+**Published dependencies:** **arkiv-encryption@1.0.0**, SDK **1.0.0**, viem **2.56.3**, TypeScript **5.9.3**, Vite **8.2.2**. The encryption package is installed from the public npm registry; its tarball matches the reviewed artifact. See [verification](../docs/rabdi-verification.md).
 
 Read the [package README](../README.md), [sample AGENTS](AGENTS.md) and [package AGENTS](../AGENTS.md) before integration.
 
@@ -24,7 +24,7 @@ The application has a server endpoint, `api/rpc.js`, and a prebuilt Vite fronten
 
 For local full-stack preview, use the existing Vercel project with its server environment and `vercel dev`. Standalone `npm run dev` (loopback port 3078) serves the UI only and cannot execute `/api/rpc`; it needs a separately configured compatible server endpoint. In this managed workspace, servers must be started/stopped with the shared local-server tool. Dependencies and heavy checks run on the DGX.
 
-Deploy only the `.vercelignore` allowlist: built `dist`, `api`, package manifests and `vercel.json`. The existing project is **arkiv-encryption**. During candidate review deploy a **preview** only. Server credentials are never written into the upload directory. The CSP permits only same-origin app scripts/network requests and the established Google font origins.
+Deploy only the `.vercelignore` allowlist: built `dist`, `api`, package manifests and `vercel.json`. The existing project is **arkiv-encryption**. Use a preview for unapproved changes; production requires the verified release workflow. Server credentials are never written into the upload directory. The CSP permits only same-origin app scripts/network requests and the established Google font origins.
 
 ## Create a note
 

@@ -2,11 +2,11 @@
 
 Encrypt bytes locally with AES-256-GCM before storing them in Arkiv entities. Indexed public columns remain queryable; encrypted content cannot be filtered. The package uses WebCrypto and does not sign transactions or replace the Arkiv SDK.
 
-**Testnet use only. Version 1.0.0 is a release candidate, not an npm publication.** The preview continues to consume the exact published `arkiv-encryption@0.1.0` crypto implementation while testing SDK 1.0.0 on Rabdi. Publication and production promotion require a separate approval. See [verification](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/rabdi/sdk-1.0-20261030/docs/rabdi-verification.md) and [breaking changes](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/rabdi/sdk-1.0-20261030/CHANGELOG.md).
+**Testnet use only. Version 1.0.0 is published on npm.** The sample consumes exact registry `arkiv-encryption@1.0.0` with SDK 1.0.0 on Rabdi. See [verification](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/v1.0.0/docs/rabdi-verification.md) and [breaking changes](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/v1.0.0/CHANGELOG.md).
 
 - [npm](https://www.npmjs.com/package/arkiv-encryption)
 - [Source](https://github.com/SantiagoDevRel/arkiv-encrypted-entities)
-- [Wallet sample](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/rabdi/sdk-1.0-20261030/sample/README.md) and [consumer agent guide](AGENTS.md)
+- [Wallet sample](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/v1.0.0/sample/README.md) and [consumer agent guide](AGENTS.md)
 
 Agents must explicitly open this README and `node_modules/arkiv-encryption/AGENTS.md`. Package managers do not automatically load either guide.
 
@@ -14,10 +14,10 @@ Agents must explicitly open this README and `node_modules/arkiv-encryption/AGENT
 
 Node.js 22+ and WebCrypto are required. Crypto needs no wallet, funds, access key or SDK at runtime. The optional SDK peer is `^1.0.0`; the integration is developed against exactly 1.0.0. The crypto API and v1 envelope remain compatible with 0.1.0.
 
-Until 1.0.0 is published, install the existing crypto release:
+Install the published release:
 
 ```sh
-npm install --save-exact arkiv-encryption@0.1.0
+npm install --save-exact arkiv-encryption@1.0.0
 ```
 
 ```js
@@ -30,7 +30,7 @@ console.log(new TextDecoder().decode(recovered)); // Hello Arkiv
 console.log(ciphertext.length); // 39
 ```
 
-To test the candidate before publication, use the reviewed `arkiv-encryption-1.0.0.tgz` instead of a registry specifier. A tarball is not a registry release. TypeScript 5.9.3 is the pinned development compiler. Compile an `.mts` consumer with `--module nodenext --target es2022 --lib es2022,dom --strict`.
+The published registry tarball matches the reviewed `arkiv-encryption-1.0.0.tgz` byte for byte. TypeScript 5.9.3 is the pinned development compiler. Compile an `.mts` consumer with `--module nodenext --target es2022 --lib es2022,dom --strict`.
 
 ## Public API
 
@@ -77,9 +77,9 @@ if (entity.contentType.value !== CONTENT_TYPE) throw new Error('Unexpected encry
 const recovered = await decryptPayload(key, hexToBytes(entity.ciphertext.value));
 ```
 
-The complete [sample implementation](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/rabdi/sdk-1.0-20261030/sample/src/main.ts) encrypts before `wallet.createEntity(Notes, values, { expiration }, txParams)`. Its [wallet transport](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/rabdi/sdk-1.0-20261030/sample/src/wallet.ts) obtains the exact unsigned SDK calldata, estimates it at `latest`, and sets `gas = max(1_000_000, 2 * estimate, retryMinimum)` plus explicit `gasPrice` and a nonce read at `latest`. The estimate must succeed before signing. Gas must not exceed half the latest block gas limit; use a smaller entity or split batches otherwise. A caller's larger gas minimum is allowed only within that same cap. Browser wallets receive these explicit fields so they do not choose a lower estimate.
+The complete [sample implementation](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/v1.0.0/sample/src/main.ts) encrypts before `wallet.createEntity(Notes, values, { expiration }, txParams)`. Its [wallet transport](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/v1.0.0/sample/src/wallet.ts) obtains the exact unsigned SDK calldata, estimates it at `latest`, and sets `gas = max(1_000_000, 2 * estimate, retryMinimum)` plus explicit `gasPrice` and a nonce read at `latest`. The estimate must succeed before signing. Gas must not exceed half the latest block gas limit; use a smaller entity or split batches otherwise. A caller's larger gas minimum is allowed only within that same cap. Browser wallets receive these explicit fields so they do not choose a lower estimate.
 
-Read state at `latest`: Rabdi rejects historical hashes, `safe` and `finalized` with “arkiv serves state at the chain head only”. A reverted receipt with `gasUsed == gasLimit` indicates gas exhaustion. The [operation state machine](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/rabdi/sdk-1.0-20261030/sample/src/transaction.ts) permits one retry only after the SDK reports a confirmed revert and an independent receipt proves gas exhaustion; it re-estimates at `latest`, at least doubles the previous gas and checks the head cap. Any SDK success, missing receipt, disagreeing receipt or uncertain error blocks resending that operation. Always require `receipt.status === 'success'` before claiming confirmation.
+Read state at `latest`: Rabdi rejects historical hashes, `safe` and `finalized` with “arkiv serves state at the chain head only”. A reverted receipt with `gasUsed == gasLimit` indicates gas exhaustion. The [operation state machine](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/v1.0.0/sample/src/transaction.ts) permits one retry only after the SDK reports a confirmed revert and an independent receipt proves gas exhaustion; it re-estimates at `latest`, at least doubles the previous gas and checks the head cap. Any SDK success, missing receipt, disagreeing receipt or uncertain error blocks resending that operation. Always require `receipt.status === 'success'` before claiming confirmation.
 
 The sample uses `ExpirationTime.fromDays(1)`. Rabdi caps lifetimes at **7,884,000 blocks**, roughly 182 days at nominal block time; a seed uses `fromBlocks(7_883_970)` within that cap. Longer requests fail with `ExpiryBeyondMaxLifetime`. There is no unlimited lifetime on Rabdi; longer availability needs **Lifetime Extension**. Actual expiry is a block number, not a wall-clock guarantee.
 
@@ -129,4 +129,4 @@ npm test
 npm run build
 ```
 
-Run installs/builds/tests on the DGX under this workspace's project rules. Crypto tests verify native Node interoperability in both directions, empty/binary/maximum inputs and authentication failures. Sample tests cover registry provenance, wallet/session/gas checks, server read restrictions and the required persistent operation scenarios. [Release verification](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/rabdi/sdk-1.0-20261030/docs/rabdi-verification.md) distinguishes mocks, live testnet evidence and unverified browser wallet signing.
+Run installs/builds/tests on the DGX under this workspace's project rules. Crypto tests verify native Node interoperability in both directions, empty/binary/maximum inputs and authentication failures. Sample tests cover registry provenance, wallet/session/gas checks, server read restrictions and the required persistent operation scenarios. [Release verification](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/v1.0.0/docs/rabdi-verification.md) distinguishes mocks, live testnet evidence and unverified browser wallet signing.

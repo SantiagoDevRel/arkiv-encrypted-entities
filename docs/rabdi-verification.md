@@ -1,4 +1,10 @@
-﻿# Rabdi / SDK 1.0.0 candidate verification
+# Rabdi / SDK 1.0.0 release verification
+
+`arkiv-encryption@1.0.0` is published on npm. The registry artifact exactly matches the approved tarball, SHA-256 `c52b55c870fa2724eaf7b42490cbf4cb31d21553c7913169f1f9437bcf1a81e1`, npm shasum `7267353971486907708037f3609cdaf7a28f2128`. Integrity: `sha512-oA2EOyeNKwd//rExITO6u4iS7nu8E8xw/Mn58YY80R4YAzgydivpn4+jDCO4B2kwAltrEKSurXVzZwLm4LcJdg==`.
+
+The sample now pins exact registry 1.0.0. Post-publication checks use `node scripts/verify-package.mjs --registry` for a new registry consumer and the full library/sample checks from committed source. Production verification and rollback deployment identifiers are recorded in the [v1.0.0 release](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/releases/tag/v1.0.0) after deployment. The reviewed tarball is immutable; its packaged candidate wording is preserved byte for byte, while current installation instructions live in the versioned source guides.
+
+## Historical first-turn candidate evidence
 
 This is the review candidate for **arkiv-encryption@1.0.0**, not an npm publication or production migration. The sample uses exact registry **arkiv-encryption@0.1.0**, whose AES-GCM envelope is compatible, with SDK **1.0.0**, viem **2.56.3**, TypeScript **5.9.3** and Vite **8.2.2**. After publication is approved, its crypto dependency and lockfile must be pinned to registry 1.0.0 and checked again.
 
