@@ -2,7 +2,7 @@
 
 # Consumer guide: arkiv-encryption
 
-Read [README.md](README.md) explicitly: it defines installation, crypto API, wire format, limits, public metadata, key custody, Rabdi integration and verification. Read [sample/AGENTS.md](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/v1.0.0/sample/AGENTS.md) when using the wallet sample.
+Read [README.md](README.md) explicitly: it defines installation, crypto API, wire format, limits, public metadata, key custody, Rabdi integration and verification. Read [sample/AGENTS.md](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/feat/encrypted-entities/sample/AGENTS.md) when using the wallet sample.
 
 ## Integration decisions
 
@@ -19,7 +19,7 @@ Read [README.md](README.md) explicitly: it defines installation, crypto API, wir
 - Use explicit latest-state gas estimates, twofold headroom with a 1,000,000 minimum, explicit gasPrice and latest nonce. Reject gas above half the head limit. Require successful receipts. Follow the sample's persistent operation state machine; never resend an SDK success or an uncertain write. Only one independently verified gas-exhaustion revert permits a retry.
 - Rabdi limits Entity Expiration to 7,884,000 blocks. Use bounded lifetimes and Lifetime Extension; no unlimited lifetime. Never use historical/safe/finalized state reads.
 - Server access keys remain server-side. Visitors configure their own authorized wallet RPC. Fail closed on missing access-key configuration with a useful message.
-- README, AGENTS and CLAUDE ship in the npm allowlist. Install `npm install --save-exact arkiv-encryption@1.1.0`. The wallet sample independently pins registry 1.0.0 and its matching lockfile.
+- README, AGENTS and CLAUDE ship in the npm allowlist. Install `npm install --save-exact arkiv-encryption@1.1.0`. The wallet sample independently pins registry 1.1.0 and its matching lockfile.
 
 ## Verify
 

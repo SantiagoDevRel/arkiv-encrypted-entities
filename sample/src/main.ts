@@ -5,7 +5,7 @@ import { Notes } from './model';
 import { submitOperation, operationIdentity, WriteOutcome, type Operation } from './transaction';
 
 import { type Hex, toHex } from 'viem';
-import { VERSION, CONTENT_TYPE, EncryptionError, generateKey, importKey, encryptPayload, decryptPayload } from 'arkiv-encryption';
+import { VERSION, CONTENT_TYPE, EncryptionError, generateKey, importKey, encryptBytes, decryptBytes } from 'arkiv-encryption';
 import { provider, connect, publicClient, writer, chain, confirmedRevertHash, UserError, EXPLORER_URL, type Provider } from './wallet';
 
 function el<T extends HTMLElement = HTMLElement>(id: string): T { return document.getElementById(id) as T; }
@@ -121,7 +121,7 @@ el('write-form').addEventListener('submit', event => {
     const key = await importKey(secret);
     const bytes = new TextEncoder().encode(el<HTMLTextAreaElement>('note').value);
     status('write-status', 'Encrypting locally and checking Rabdi…', 'loading');
-    const ciphertext = await encryptPayload(key, bytes);
+    const ciphertext = await encryptBytes(key, bytes);
     const identity = await operationIdentity(account, secret, bytes);
     const operation: Operation = operations.get(identity) ?? { phase: 'idle', attempts: 0 };
     operations.set(identity, operation);
@@ -184,7 +184,7 @@ function query(mode: QueryMode) {
     if (mode === 'public') { status('public-status', 'Fetched from Arkiv. No key used.', 'success'); return; }
     // Fetching ciphertext does not require a valid key. Validate only for local decryption.
     const key = await importKey(secret!);
-    const recovered = await decryptPayload(key, ciphertext);
+    const recovered = await decryptBytes(key, ciphertext);
     if (epoch !== sessionEpoch) throw new UserError('The session or inputs changed. Restore your key privately and query again.');
     const same = original?.entityKey.toLowerCase() === id.toLowerCase();
     if (same && (original!.bytes.length !== recovered.length || recovered.some((byte, index) => byte !== original!.bytes[index]))) throw new UserError('Recovered bytes do not match the note sent from this tab.');

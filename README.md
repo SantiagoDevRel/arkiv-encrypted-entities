@@ -2,11 +2,11 @@
 
 Encrypt binary data locally with AES-256-GCM for a `bytes` column. Attributes stay public. Indexed public columns remain queryable; encrypted content cannot be filtered. The package uses WebCrypto and does not sign transactions or replace the Arkiv SDK.
 
-**arkiv-encryption 1.1.0 · Rabdi testnet.** Encrypt binary data for a `bytes` column; attributes stay public. The wallet sample pins exact registry 1.0.0 independently of the library API documented here.
+**arkiv-encryption 1.1.0 · Rabdi testnet.** Encrypt binary data for a `bytes` column; attributes stay public. The wallet sample pins exact registry 1.1.0 independently of the library API documented here.
 
 - [npm](https://www.npmjs.com/package/arkiv-encryption)
 - [Source](https://github.com/SantiagoDevRel/arkiv-encrypted-entities)
-- [Wallet sample](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/v1.0.0/sample/README.md) and [consumer agent guide](AGENTS.md)
+- [Wallet sample](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/feat/encrypted-entities/sample/README.md) and [consumer agent guide](AGENTS.md)
 
 Agents must explicitly open this README and `node_modules/arkiv-encryption/AGENTS.md`. Package managers do not automatically load either guide.
 
@@ -77,9 +77,9 @@ if (entity.contentType.value !== CONTENT_TYPE) throw new Error('Unexpected encry
 const recovered = await decryptBytes(key, hexToBytes(entity.ciphertext.value));
 ```
 
-The complete [sample implementation](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/v1.0.0/sample/src/main.ts) encrypts before `wallet.createEntity(Notes, values, { expiration }, txParams)`. Its [wallet transport](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/v1.0.0/sample/src/wallet.ts) obtains the exact unsigned SDK calldata, estimates it at `latest`, and sets `gas = max(1_000_000, 2 * estimate, retryMinimum)` plus explicit `gasPrice` and a nonce read at `latest`. The estimate must succeed before signing. Gas must not exceed half the latest block gas limit; use a smaller entity or split batches otherwise. A caller's larger gas minimum is allowed only within that same cap. Browser wallets receive these explicit fields so they do not choose a lower estimate.
+The complete [sample implementation](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/feat/encrypted-entities/sample/src/main.ts) encrypts before `wallet.createEntity(Notes, values, { expiration }, txParams)`. Its [wallet transport](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/feat/encrypted-entities/sample/src/wallet.ts) obtains the exact unsigned SDK calldata, estimates it at `latest`, and sets `gas = max(1_000_000, 2 * estimate, retryMinimum)` plus explicit `gasPrice` and a nonce read at `latest`. The estimate must succeed before signing. Gas must not exceed half the latest block gas limit; use a smaller entity or split batches otherwise. A caller's larger gas minimum is allowed only within that same cap. Browser wallets receive these explicit fields so they do not choose a lower estimate.
 
-Read state at `latest`: Rabdi rejects historical hashes, `safe` and `finalized` with “arkiv serves state at the chain head only”. A reverted receipt with `gasUsed == gasLimit` indicates gas exhaustion. The [operation state machine](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/v1.0.0/sample/src/transaction.ts) permits one retry only after the SDK reports a confirmed revert and an independent receipt proves gas exhaustion; it re-estimates at `latest`, at least doubles the previous gas and checks the head cap. Any SDK success, missing receipt, disagreeing receipt or uncertain error blocks resending that operation. Always require `receipt.status === 'success'` before claiming confirmation.
+Read state at `latest`: Rabdi rejects historical hashes, `safe` and `finalized` with “arkiv serves state at the chain head only”. A reverted receipt with `gasUsed == gasLimit` indicates gas exhaustion. The [operation state machine](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/feat/encrypted-entities/sample/src/transaction.ts) permits one retry only after the SDK reports a confirmed revert and an independent receipt proves gas exhaustion; it re-estimates at `latest`, at least doubles the previous gas and checks the head cap. Any SDK success, missing receipt, disagreeing receipt or uncertain error blocks resending that operation. Always require `receipt.status === 'success'` before claiming confirmation.
 
 The sample uses `ExpirationTime.fromDays(1)`. Rabdi caps lifetimes at **7,884,000 blocks**, roughly 182 days at nominal block time; a seed uses `fromBlocks(7_883_970)` within that cap. Longer requests fail with `ExpiryBeyondMaxLifetime`. There is no unlimited lifetime on Rabdi; longer availability needs **Lifetime Extension**. Actual expiry is a block number, not a wall-clock guarantee.
 
