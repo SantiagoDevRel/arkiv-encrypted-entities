@@ -1,3 +1,5 @@
+> Historical dated evidence, preserved from 0638999. For current API and installation guidance, use the root README and AGENTS.md.
+
 # Hub publication — 2026-09-09
 
 [ARKIV-ENCRYPTION is listed on staging](https://stage.hub.arkiv.network/tools#tool-arkiv-encryption), using published **arkiv-encryption@0.1.0** and the [public wallet sample](https://arkiv-encryption.vercel.app). Package, consumer and real Tiramisu evidence is recorded in [verification.md](verification.md).

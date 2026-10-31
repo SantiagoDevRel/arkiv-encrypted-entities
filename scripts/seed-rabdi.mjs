@@ -6,7 +6,7 @@ import { eq } from '@arkiv-network/sdk/query';
 import { createWalletClient, http, hexToBytes } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { getGasPrice } from 'viem/actions';
-import { CONTENT_TYPE, importKey, encryptPayload, decryptPayload } from '../dist/index.js';
+import { CONTENT_TYPE, importKey, encryptBytes, decryptBytes } from '../dist/index.js';
 import { Notes } from '../sample/src/model.ts';
 import { submitOperation } from '../sample/src/transaction.ts';
 
@@ -27,12 +27,12 @@ async function verify(entityKey) {
   assert.equal(row.$owner.toLowerCase(), account.address.toLowerCase());
   assert.equal(row.contentType.value, CONTENT_TYPE);
   const encrypted = hexToBytes(row.ciphertext.value);
-  assert.deepEqual(await decryptPayload(await importKey(process.env.ENCRYPTION_SEED_KEY), encrypted), original);
+  assert.deepEqual(await decryptBytes(await importKey(process.env.ENCRYPTION_SEED_KEY), encrypted), original);
   const wrong = crypto.getRandomValues(new Uint8Array(32));
-  await assert.rejects(decryptPayload(await importKey(wrong), encrypted), { code: 'DECRYPTION_FAILED' });
+  await assert.rejects(decryptBytes(await importKey(wrong), encrypted), { code: 'DECRYPTION_FAILED' });
   wrong.fill(0);
   const altered=encrypted.slice(); altered[altered.length-1]^=1;
-  await assert.rejects(decryptPayload(await importKey(process.env.ENCRYPTION_SEED_KEY), altered), {code:'DECRYPTION_FAILED'});
+  await assert.rejects(decryptBytes(await importKey(process.env.ENCRYPTION_SEED_KEY), altered), {code:'DECRYPTION_FAILED'});
   return row;
 }
 async function main() {
@@ -50,7 +50,7 @@ async function main() {
     const head=await rpc.getBlockNumber({cacheTime:0});
     if(previous.phase!=='confirmed' || !(head >= BigInt(previous.expiresAt) || head < BigInt(previous.blockNumber))) throw Error('Previous operation needs reconciliation. No automatic resend.');
   }
-  const ciphertext=await encryptPayload(await importKey(process.env.ENCRYPTION_SEED_KEY),original);
+  const ciphertext=await encryptBytes(await importKey(process.env.ENCRYPTION_SEED_KEY),original);
   const operation={phase:'idle',attempts:0};
   globalThis.window=new EventTarget();
   const { writer, confirmedRevertHash }=await import('../sample/src/wallet.ts');

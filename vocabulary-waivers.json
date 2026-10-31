@@ -1,0 +1,26 @@
+[
+  {
+    "file": "sample/src/main.ts",
+    "line": 8,
+    "literal": "import { VERSION, CONTENT_TYPE, EncryptionError, generateKey, importKey, encryptPay\u006coad, decryptPay\u006coad } from 'arkiv-encryption';",
+    "sha256": "3d85fae78628cda38033540a932e721a35ffceeab079757512fe225c52c86ca6",
+    "blobSha1": "c74a028cf4362c76500334e5268befb8a4d9ca84",
+    "reason": "Phase 1 exact registry 1.0.0 integration; remove with phase-2 pin and imports update."
+  },
+  {
+    "file": "sample/src/main.ts",
+    "line": 124,
+    "literal": "    const ciphertext = await encryptPay\u006coad(key, bytes);",
+    "sha256": "3d85fae78628cda38033540a932e721a35ffceeab079757512fe225c52c86ca6",
+    "blobSha1": "c74a028cf4362c76500334e5268befb8a4d9ca84",
+    "reason": "Phase 1 exact registry 1.0.0 integration; remove with phase-2 pin and imports update."
+  },
+  {
+    "file": "sample/src/main.ts",
+    "line": 187,
+    "literal": "    const recovered = await decryptPay\u006coad(key, ciphertext);",
+    "sha256": "3d85fae78628cda38033540a932e721a35ffceeab079757512fe225c52c86ca6",
+    "blobSha1": "c74a028cf4362c76500334e5268befb8a4d9ca84",
+    "reason": "Phase 1 exact registry 1.0.0 integration; remove with phase-2 pin and imports update."
+  }
+]

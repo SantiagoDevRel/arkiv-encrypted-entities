@@ -1,3 +1,11 @@
+# Changelog
+
+## 1.1.0
+
+- Add encryptBytes/decryptBytes with identical deprecated aliases and unchanged v1 format. Guard every source-map string and preserve dated evidence.
+
+> Historical version entries below are preserved as recorded; use README.md for the current release.
+
 ﻿# Changelog
 
 ## 1.0.0

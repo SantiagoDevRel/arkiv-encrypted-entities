@@ -1,5 +1,5 @@
 /** Adapted from arkiv-cookbook/src/lib/arkiv/crypto.ts: one WebCrypto format in both runtimes. */
-export const VERSION = '1.0.0';
+export const VERSION = '1.1.0';
 export const CONTENT_TYPE = 'application/vnd.arkiv.encrypted.v1';
 export const ENVELOPE = Object.freeze({ algorithm: 'AES-GCM', ivBytes: 12, tagBytes: 16, layout: 'iv || ciphertext || tag' } as const);
 /** Conservative policy for a single small entity; not a network maximum. */
@@ -44,7 +44,7 @@ export async function importKey(raw: string | Uint8Array): Promise<CryptoKey> {
   finally { data.fill(0); }
 }
 /** Random 96-bit IV on every call; no compression, key persistence, or network access. */
-export async function encryptPayload(key: CryptoKey, plaintext: Uint8Array | string): Promise<Uint8Array<ArrayBuffer>> {
+export async function encryptBytes(key: CryptoKey, plaintext: Uint8Array | string): Promise<Uint8Array<ArrayBuffer>> {
   requireKey(key, 'encrypt');
   const data = bytes(typeof plaintext === 'string' ? new TextEncoder().encode(plaintext) : plaintext, MAX_PLAINTEXT_BYTES);
   const iv = webcrypto().getRandomValues(new Uint8Array(ENVELOPE.ivBytes));
@@ -56,7 +56,7 @@ export async function encryptPayload(key: CryptoKey, plaintext: Uint8Array | str
   } finally { data.fill(0); }
 }
 /** Authenticates before returning bytes. Wrong keys and tampering have the same safe failure. */
-export async function decryptPayload(key: CryptoKey, envelope: Uint8Array): Promise<Uint8Array<ArrayBuffer>> {
+export async function decryptBytes(key: CryptoKey, envelope: Uint8Array): Promise<Uint8Array<ArrayBuffer>> {
   requireKey(key, 'decrypt');
   if (!(envelope instanceof Uint8Array) || envelope.length < 28 || envelope.length > MAX_PLAINTEXT_BYTES + 28) {
     fail('INVALID_ENVELOPE', 'Expected a v1 envelope of 28 to 100028 bytes.');
@@ -69,3 +69,8 @@ export async function decryptPayload(key: CryptoKey, envelope: Uint8Array): Prom
     fail('DECRYPTION_FAILED', 'Decryption failed: the key is wrong or the encrypted bytes were modified. No plaintext was returned.');
   }
 }
+
+/** @deprecated Use encryptBytes. Identical function and v1 envelope. */
+export const encryptPayload = encryptBytes;
+/** @deprecated Use decryptBytes. Identical function and v1 envelope. */
+export const decryptPayload = decryptBytes;

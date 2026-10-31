@@ -32,7 +32,7 @@ function compare() {
 function clearQuery(mode: QueryMode) {
   delete responses[mode];
   el(mode === 'public' ? 'public-result' : 'read-network-result').hidden = true;
-  for (const suffix of ['payload', 'bytes']) el(`${mode}-${suffix}`).textContent = '';
+  for (const suffix of ['ciphertext', 'bytes']) el(`${mode}-${suffix}`).textContent = '';
   if (mode === 'read') { el('read-result').hidden = true; el('read-locked').hidden = false; el('plaintext').textContent = ''; }
   if (responses.public === undefined && responses.read === undefined) el('explorer-result').hidden = true;
   compare();
@@ -173,9 +173,9 @@ function query(mode: QueryMode) {
     if (epoch !== sessionEpoch) throw new UserError('The session or inputs changed. Query again.');
     if (entity.contentType.value !== CONTENT_TYPE || !entity.ciphertext) throw new UserError('This entity does not contain an encrypted v1 envelope from this tool.');
     const ciphertext = hexToBytes(entity.ciphertext.value);
-    const payload = toHex(ciphertext);
+    const ciphertextHex = toHex(ciphertext);
     const fields = { entityId: id, owner: entity.$owner, creator: entity.$creator, attributes: { app: entity.app, seed: entity.seed, contentType: entity.contentType, ciphertext: entity.ciphertext }, createdAtBlock: entity.$createdAt, updatedAtBlock: entity.$updatedAt, expiresAtBlock: entity.$expiresAt };
-    el(`${mode}-payload`).textContent = payload;
+    el(`${mode}-ciphertext`).textContent = ciphertextHex;
     el(`${mode}-bytes`).textContent = `${ciphertext.length.toLocaleString('en-US')} bytes`;
     el(mode === 'public' ? 'public-result' : 'read-network-result').hidden = false;
     responses[mode] = { json: pretty(fields), order: ++responseOrder }; compare();

@@ -1,3 +1,5 @@
+> Historical dated evidence, preserved from 0638999. For current API and installation guidance, use the root README and AGENTS.md.
+
 # Verification: 0.1.0
 
 ## Renamed release — 2026-09-09
