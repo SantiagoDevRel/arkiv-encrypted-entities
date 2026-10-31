@@ -1,7 +1,7 @@
 {
   "framework": null,
-  "buildCommand": null,
-  "installCommand": null,
+  "buildCommand": "",
+  "installCommand": "npm ci --omit=dev --no-audit --no-fund",
   "outputDirectory": "dist",
   "headers": [{
     "source": "/(.*)",

@@ -1,0 +1,42 @@
+import assert from 'node:assert/strict';
+import { mkdir, writeFile, readFile } from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import path from 'node:path';
+
+const root=process.cwd(), tarball=path.join(root,'arkiv-encryption-1.0.0.tgz');
+const registry=process.argv.includes('--registry');
+const consumer=path.join(process.env.TMPDIR,'encryption-clean-consumer');
+await mkdir(consumer);
+const run=(cmd,args,cwd)=>{const p=spawnSync(cmd,args,{cwd,stdio:'inherit'});assert.equal(p.status,0,`${cmd} failed`);};
+await writeFile(path.join(consumer,'package.json'),JSON.stringify({name:'encryption-clean-consumer',private:true,type:'module'}));
+run('npm',['install','--save-exact','--no-audit','--no-fund',registry?'arkiv-encryption@1.0.0':tarball],consumer);
+const probe=`import assert from 'node:assert/strict';
+import { VERSION, generateKey, importKey, encryptPayload, decryptPayload } from 'arkiv-encryption';
+assert.equal(VERSION,'1.0.0');
+const key=await importKey(generateKey()), input=new Uint8Array([0,255,128,0,65]);
+const ciphertext=await encryptPayload(key,input);
+assert.deepEqual(await decryptPayload(key,ciphertext),input);
+await assert.rejects(decryptPayload(await importKey(generateKey()),ciphertext),{code:'DECRYPTION_FAILED'});
+ciphertext[ciphertext.length-1]^=1;
+await assert.rejects(decryptPayload(key,ciphertext),{code:'DECRYPTION_FAILED'});
+console.log('Clean consumer: version, known bytes, wrong key and tampering passed.');
+`;
+await writeFile(path.join(consumer,'probe.mjs'),probe);
+run('node',['probe.mjs'],consumer);
+await writeFile(path.join(consumer,'types.mts'),`import { importKey, generateKey, encryptPayload, decryptPayload, EncryptionError } from 'arkiv-encryption';
+const key: CryptoKey=await importKey(generateKey());
+const encrypted: Uint8Array=await encryptPayload(key,new Uint8Array([0,255]));
+const recovered: Uint8Array=await decryptPayload(key,encrypted);
+if(recovered.length!==2)throw new EncryptionError('INVALID_INPUT','Unexpected result');
+`);
+run('node',[path.join(root,'node_modules/typescript/bin/tsc'),'types.mts','--module','nodenext','--target','es2022','--lib','es2022,dom','--strict','--outDir','build'],consumer);
+run('node',['build/types.mjs'],consumer);
+for(const file of ['README.md','AGENTS.md','CLAUDE.md'])assert.ok((await readFile(path.join(consumer,'node_modules/arkiv-encryption',file))).length>0);
+const lock=JSON.parse(await readFile(path.join(consumer,'package-lock.json'),'utf8'));
+if(registry) {
+  assert.equal(lock.packages['node_modules/arkiv-encryption'].version,'1.0.0');
+  assert.equal(lock.packages['node_modules/arkiv-encryption'].resolved,'https://registry.npmjs.org/arkiv-encryption/-/arkiv-encryption-1.0.0.tgz');
+  assert.equal(await readFile(path.join(consumer,'node_modules/arkiv-encryption/dist/index.js'),'utf8'),await readFile(path.join(root,'dist/index.js'),'utf8'),'Published implementation differs from committed source build.');
+}
+console.log(JSON.stringify({source:registry?'registry':'tarball',...(registry?{integrity:lock.packages['node_modules/arkiv-encryption'].integrity}:{tarball:path.basename(tarball),sha256:createHash('sha256').update(await readFile(tarball)).digest('hex')}),cleanConsumer:true,typeScript:'5.9.3'}));

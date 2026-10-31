@@ -1,6 +1,6 @@
 {
   "name": "arkiv-encryption-sample",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -9,12 +9,14 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 3078 --strictPort",
     "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit --noUnusedLocals --noUnusedParameters",
     "preview": "vite preview --host 127.0.0.1 --port 3078 --strictPort",
     "test": "node --experimental-strip-types --test test/*.test.mjs"
   },
   "dependencies": {
-    "@arkiv-network/sdk": "0.8.0",
-    "arkiv-encryption": "0.1.0",
+    "@arkiv-network/sdk": "1.0.0",
+    "arkiv-encryption": "1.0.0",
     "viem": "2.56.3"
   },
   "devDependencies": {

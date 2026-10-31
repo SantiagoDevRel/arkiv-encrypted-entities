@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "allow": [
+    {
+      "rule": "html-ui",
+      "path": "sample/index.html",
+      "reason": "Existing Vite/TypeScript sample predates the React entry-shell policy. This migration preserves its established UI and dependencies, updating network/ciphertext copy and CSP only; converting frameworks is explicitly outside scope."
+    }
+  ]
+}

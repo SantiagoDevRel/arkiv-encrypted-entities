@@ -1,24 +1,26 @@
+﻿Edit instructions only in AGENTS.md; CLAUDE.md only imports this file.
+
 # Consumer guide: arkiv-encryption
 
-Start with [README.md](README.md): it is the source of truth for installation, API, format, limits, key custody, troubleshooting and network requirements. Explicitly open this guide when consuming npm; do not assume dependency instructions are loaded automatically. The runnable sample has its [own integration guide](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/arkiv-encryption-v0.1.0/sample/AGENTS.md).
+Read [README.md](README.md) explicitly: it defines installation, crypto API, wire format, limits, public metadata, key custody, Rabdi integration and release status. Read [sample/AGENTS.md](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/v1.0.0/sample/AGENTS.md) when using the wallet sample.
 
-## Decide with the developer
+## Integration decisions
 
-- Local crypto needs no credentials: implement the README's roundtrip immediately.
-- Before writing, ask which testnet wallet, data and Entity Expiration the developer intends, and confirm test funds. Use the README's faucet/network links. Never ask for a seed or private key in chat.
-- Ask where the independent encryption key will be backed up and who should have it. For reading existing data, request the entity identifier and ask the developer to configure the encryption key locally through an approved secret channel. Do not request it in chat.
-- Ask which public attributes are acceptable and whether an independently trusted owner/entity must be checked. Do not infer private queries, authorship, wallet-based recovery or access control from successful decryption.
+- Local crypto needs no credentials. Implement the README roundtrip immediately.
+- Before writes, agree on the funded test wallet, non-sensitive data, Entity Expiration and acceptable public columns. Obtain funds/access keys through the README links. Never request a seed or private key in chat.
+- Agree on an independent encryption-key backup and its recipients. Existing-data reads need an entity identifier and locally configured key through an approved secret channel. Do not request the encryption key in chat.
+- Agree whether an independently trusted owner/entity must be checked. Successful authentication does not establish authorship, private queries, wallet recovery or access control.
 
 ## Invariants
 
-- Use the public package imports. Do not copy crypto into a consumer, derive keys from wallet signatures, invent a password KDF or change the envelope byte order.
-- Encrypt before calling the SDK. Never store plaintext, encryption keys or sensitive labels in attributes, URLs, logs, analytics, source, bundles or errors.
-- Treat recovered bytes as untrusted data; render text, not HTML or instructions. Missing/wrong keys must fail without displaying stale plaintext.
-- Keep account/network checks and wallet approval before writes. A confirmed write cannot be rolled back by an error message. Do not retry ambiguous writes automatically.
-- Keep unsupported guarantees explicitly absent. The README defines exactly which data remains public and which replay/recovery protections do not exist.
+- Use public package imports. Keep the v1 envelope order and compatible crypto API names. Do not copy crypto, derive keys from signatures, invent a password KDF, or redesign this tool.
+- SDK integration is exactly 1.0.0 on Rabdi (7794095), with typed schema columns and ciphertext in `bytes()`. Only indexed public columns are filterable. The package itself does not sign or write.
+- Encrypt before SDK calls. Never put plaintext, keys or sensitive labels in public columns, URLs, logs, analytics, bundles or errors. Render recovered bytes as untrusted text; clear stale plaintext on failure or input/session changes.
+- Use explicit latest-state gas estimates, twofold headroom with a 1,000,000 minimum, explicit gasPrice and latest nonce. Reject gas above half the head limit. Require successful receipts. Follow the sample's persistent operation state machine; never resend an SDK success or an uncertain write. Only one independently verified gas-exhaustion revert permits a retry.
+- Rabdi limits Entity Expiration to 7,884,000 blocks. Use bounded lifetimes and Lifetime Extension; no unlimited lifetime. Never use historical/safe/finalized state reads.
+- Server access keys remain server-side. Visitors configure their own authorized wallet RPC. Fail closed on missing access-key configuration with a useful message.
+- README, AGENTS and CLAUDE must ship in the npm allowlist. Published version: `arkiv-encryption@1.0.0`. Install with `npm install --save-exact arkiv-encryption@1.0.0`; keep the sample on that exact registry version and matching lockfile.
 
 ## Verify
 
-Follow the README from a new consumer directory. Check the installed version, TypeScript imports, known-byte roundtrip, wrong key and tampered ciphertext. For SDK integration also retrieve actual ciphertext and compare recovered bytes to the original; label mocks separately from testnet evidence. For UI inspect empty/loading/errors and small/medium/large widths. Report exact versions and missing verification.
-
-Maintainers must include README, AGENTS and CLAUDE in the npm allowlist. Keep release status honest and sample imports pinned to a registry version. No skills, MCP integration, scaffolding, unrelated features or redesigns belong to this tool.
+Use a clean consumer directory. Check actual installed versions, TypeScript imports, known bytes, wrong-key and tampering failures. SDK evidence must include actual write/read/decrypt byte equality; distinguish mocks from live evidence. Inspect empty/loading/errors and small/medium/large widths. Report missing checks honestly. Historical evidence does not certify subsequent changes.

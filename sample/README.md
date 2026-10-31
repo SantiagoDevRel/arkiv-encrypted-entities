@@ -1,99 +1,85 @@
-﻿# Encrypted notes: wallet sample
+﻿# Encrypted notes sample — Rabdi
 
-Create an encrypted note, then compare what Arkiv returns with and without the encryption key. The payload stays encrypted on the network. Only the keyed query adds a locally decrypted message.
+Create an encrypted note, then compare the same public ciphertext with and without a locally entered encryption key. The UI uses the existing Arkiv layout and English copy. This is a testnet demonstration, not an independently audited privacy system.
 
-The application is named **Arkiv Encryption** and consumes **arkiv-encryption**. The source repository keeps its existing name, `arkiv-encrypted-entities`; the AES-GCM format and previously stored entities remain compatible.
+**Published dependencies:** **arkiv-encryption@1.0.0**, SDK **1.0.0**, viem **2.56.3**, TypeScript **5.9.3**, Vite **8.2.2**. The encryption package is installed from the public npm registry; its tarball matches the reviewed artifact. See [verification](../docs/rabdi-verification.md).
 
-[Open the sample](https://arkiv-encryption.vercel.app), deployed with **arkiv-encryption@0.1.0**.
+Read the [package README](../README.md), [sample AGENTS](AGENTS.md) and [package AGENTS](../AGENTS.md) before integration.
 
-**These packages are intended for testnet use.**
+## Configure and run
 
-This sample consumes published **arkiv-encryption@0.1.0**, with SDK **0.8.0** and viem **2.56.3**. See [verification](../docs/verification.md) for executed evidence and deployment status. The [package README](../README.md) is the source of truth for API, envelope, privacy guarantees and limits. Agents must explicitly open [AGENTS.md](AGENTS.md) and the [package consumer guide](../AGENTS.md).
-
-## Run from a clean checkout
-
-Node.js 22.12+ and npm are required. No environment file, API key or server signer is needed. On restricted Windows PowerShell, use `npm.cmd` instead of `npm`; no execution-policy change is necessary.
+Node.js 22.12+ and npm are required. On restricted Windows PowerShell use `npm.cmd`; do not change execution policy.
 
 ```sh
-git clone --branch arkiv-encryption-v0.1.0 https://github.com/SantiagoDevRel/arkiv-encrypted-entities.git
-cd arkiv-encrypted-entities/sample
+cd sample
 npm ci
 npm ls arkiv-encryption @arkiv-network/sdk viem
-npm run dev
-```
-
-Open **http://localhost:3078** with MetaMask or Rabby installed for writes. Reads work without a wallet. The server binds to loopback and refuses to replace an existing process on that port.
-
-To verify and preview the production build, stop the dev server first:
-
-```sh
 npm test
+npm run typecheck
+npm run lint
 npm run build
-npm run preview
 ```
 
-The registry-provenance test rejects parent imports, local lockfile links and a symlinked encryption package. No root package build or root dependencies are required.
+The application has a server endpoint, `api/rpc.js`, and a prebuilt Vite frontend. Configure **ARKIV_ACCESS_KEY** on the server using a free [Hub access key](https://hub.arkiv.network/access-keys). Hosted sample reads use Key B, server-side only. Never use `VITE_*` or `NEXT_PUBLIC_*` for this key. Missing configuration returns a helpful 503. `rabdi({ accessKey })` requires an explicit string; handle `MissingAccessKeyError` rather than falling back to anonymous access.
+
+For local full-stack preview, use the existing Vercel project with its server environment and `vercel dev`. Standalone `npm run dev` (loopback port 3078) serves the UI only and cannot execute `/api/rpc`; it needs a separately configured compatible server endpoint. In this managed workspace, servers must be started/stopped with the shared local-server tool. Dependencies and heavy checks run on the DGX.
+
+Deploy only the `.vercelignore` allowlist: built `dist`, `api`, package manifests and `vercel.json`. The existing project is **arkiv-encryption**. Use a preview for unapproved changes; production requires the verified release workflow. Server credentials are never written into the upload directory. The CSP permits only same-origin app scripts/network requests and the established Google font origins.
 
 ## Create a note
 
-1. Click **Connect wallet**. The sample requests adding/switching to **Tiramisu, chain 7738577**, and verifies the account/network before signing. It prefers Rabby if both Rabby and MetaMask are installed. Check the full account shown below the top bar.
-2. Obtain test GLM from the [Hub faucet](https://hub.arkiv.network/faucet) if needed. The app uses the SDK's public Tiramisu RPC automatically, with bounded requests and no persistent cache. There is no RPC field or network selector. SDK reads and receipt confirmation use this RPC; signing uses your wallet.
-3. Keep the default non-sensitive note or enter your own. Click **Generate key**. Use the eye inside **Encryption key** to reveal/mask it and save a private backup, such as in a password manager. This is a 64-character hexadecimal encryption key, not a wallet private key or password. Confirm the backup checkbox.
-4. Click **Encrypt & store** and approve one entity transaction. The app encrypts before building calldata, estimates gas against that calldata and rechecks the wallet session before sending. Entity Expiration is approximately 24 hours. Size/expiration details are expandable.
-5. Keep the returned **Entity ID**. **View entity** opens the entity summary/history; **View transaction** opens the specific write. **Inspect its payload below** stays in the sample. On confirmation the ID and original key are filled into the inspection form, unless the wallet session changed.
+1. Configure **Rabdi, chain 7794095**, in your wallet with your own authorized RPC from the access-key page. The sample never adds the server's URL or key to a wallet. Click **Connect wallet**; the sample switches to an existing Rabdi network and verifies account/network. Rabby is preferred if both Rabby and MetaMask are installed.
+2. Obtain test GLM from the [faucet](https://hub.arkiv.network/faucet). Keep the displayed account under the header in view.
+3. Use a non-sensitive note. Generate an independent key; reveal it only to save a private backup. A wallet private key, seed phrase, password or signature is not an encryption key. Confirm the backup checkbox.
+4. Click **Encrypt & store**. The browser encrypts first, then the SDK constructs a schema-based create. The wallet transport estimates the exact unsigned calldata at `latest`, sets `gas = max(1,000,000, 2 * estimate)` plus explicit `gasPrice` and latest nonce, and rechecks the session. It rejects gas above half the head block limit. No estimate means no send.
+5. Approve the intended wallet request. Keep the returned entity identifier and independent key privately. On confirmed success the inspection fields are filled unless the wallet session changed.
 
-Expected note: **Hello Arkiv. Only my encryption key can unlock this note.** Its 57 UTF-8 bytes produce an **85-byte encrypted envelope**, displayed as `0x` plus 170 hexadecimal characters. Each encryption generates a new random IV, so ciphertext differs between writes.
+Entity Expiration is approximately one day; Rabdi's maximum is 7,884,000 blocks (roughly 182 nominal days). Unlimited lifetime is unsupported. Longer availability needs **Lifetime Extension**. Expiration does not erase history or copies.
+
+The default note has 57 UTF-8 bytes and an 85-byte envelope. Every encryption uses a fresh random IV. Empty notes and up to 100,000 plaintext bytes are supported; the final gas preflight can reject a note that exceeds the current safe transaction budget.
 
 ## Compare queries
 
-Use the same Entity ID for both buttons. To inspect after reload, paste the ID and restore the original encryption key privately into **Encryption key** in the inspection section. Its eye control also works with keyboard focus and Space/Enter.
+Both buttons call `getEntity(id, Notes)` through the same `/api/rpc` route without sending an encryption key. The public query never reads/validates the key. The keyed query fetches first, then authenticates/decrypts locally. A missing, malformed or wrong key retains retrieved ciphertext and clears old plaintext. Recovered text is rendered with `textContent`.
 
-| Action | What is fetched from Arkiv | What this browser additionally does |
-| --- | --- | --- |
-| **Query without encryption key** | Public attributes, encrypted payload and metadata | Nothing: no key is read or sent; no decryption attempted |
-| **Query with encryption key** | The same public entity request | Authenticates/decrypts the payload with the local key and displays the original note |
+The single **Network response** panel shows decoded typed SDK fields. Equal snapshots are labelled shared; otherwise the latest successful query is identified. Changing entity/account/network clears both results; editing the inspection key clears its result. Late responses cannot restore stale plaintext or cleared keys.
 
-Both queries fetch the public entity without sending a key. The keyed query then validates the key and attempts local decryption. A missing, malformed or incorrect key leaves the retrieved ciphertext visible; no unauthenticated plaintext is shown. A successful same-tab roundtrip reports a byte-for-byte match. If the entity changed between queries, the comparison tells you to run both again instead of claiming the responses match.
+| Column | Public visibility / filtering |
+| --- | --- |
+| `arkiv.schema` | Named schema tag, indexed, public. |
+| `app` | Fixed `encrypted-entities-sample`, indexed, public. |
+| `seed` | Optional non-sensitive reseed marker, indexed, public. |
+| `contentType` | Public stored string identifying the v1 envelope. |
+| `ciphertext` | Complete public `bytes()` value; encrypted note content, not filterable. |
 
-The main comparison shows **Encrypted message** on the left (the complete ciphertext) and **Decrypted message** on the right (the original text after local authentication). The result boxes align on desktop and stack on smaller screens. A wrong key clears any previous plaintext and shows **Encrypted message** with the actual retrieved `0x…` bytes in the right-hand box too.
+Addresses, identifiers, creation/update/expiration blocks and transactions remain public. Envelope length reveals exact plaintext byte length minus 28 bytes of overhead. A successful decryption does not authenticate the owner, network, schema or other columns. Applications requiring trusted authorship must independently check their expected entity/owner.
 
-Open the single **Network response** below the comparison for decoded SDK fields. Identical snapshots are labelled as the same response for both queries. If only one query succeeded or the snapshots differ, it shows the latest successful fetch and names that query; clearing a result falls back to the remaining snapshot. No results means no shared response.
+Public links accept `?entity=0x...` only. Never include keys in URLs. The entity and transaction links open the [Rabdi explorer](https://rabdi.explorer.arkiv.network); network bytes are displayed directly by the app regardless of what the explorer summarizes.
 
-- **Public attributes:** actual SDK typed attributes. This sample writes only `app = encrypted-entities-sample`; it never writes the note or encryption key into an attribute.
-- **Payload:** the complete encrypted envelope as hexadecimal. Long payloads scroll; they are not shortened or replaced by invented text.
-- **Metadata:** ID, owner, content type and block information. This single JSON presentation contains decoded SDK fields, not the raw JSON-RPC wire response. Big integers are displayed as decimal strings.
+## Failure and confirmation handling
 
-The decrypted text is not part of the network response and is not sent back to Arkiv.
+- Missing wallet/rejected connection: explain the problem; reading remains available. Unknown wallet network: configure Rabdi with your own access key, then reconnect.
+- State reads use `latest`. Rabdi rejects `safe`, `finalized` and historical state with “arkiv serves state at the chain head only”.
+- Each distinct note/key/account combination keeps one operation state in page memory across clicks. `sending` is set before network calls; re-entry is blocked. SDK success stores `submitted(hash)` before an independent receipt lookup. Null/timeout/disagreeing receipts show a typed outcome and hash without resending.
+- An uncertain SDK failure blocks that operation. One retry is allowed only when the SDK reports a confirmed revert and an authoritative receipt shows `gasUsed == sent gas`. Retry gas is at least twice the previous gas and twice a fresh estimate, still below half the head limit. Other reverts stop after one send; at most two sends are possible.
+- A reload clears operation memory too. Check wallet/explorer activity before starting another operation after a reload. Do not use reload as a retry instruction.
+- Automatic transaction replacement scans are disabled so SDK receipt polling uses the submitted hash and latest head only. If you replace or cancel a transaction in the wallet, reconcile it manually in the wallet/explorer; do not resubmit this operation.
+- Wrong/missing key and altered bytes fail authentication; no stale plaintext is shown. Missing/expired entity, server-key configuration failure or RPC failure clear the affected result. Reads may be retried.
 
-The current Tiramisu entity explorer shows a summary, payload size and history; it does not display the complete payload in its entity overview. The sample therefore fetches and displays those bytes directly. The explorer never receives your encryption key.
+Keys and plaintext stay in page memory only, with no browser storage, URLs, analytics or logs. JavaScript cannot guarantee memory erasure. Browser extensions, XSS or a compromised device can read page memory. Keep keys in an approved private backup; the app provides no escrow, recovery, sharing or revocation.
 
-## Failure states and custody
+## Idempotent sample data
 
-- Missing wallet or rejected connection: writing reports the problem; public reading remains available.
-- Wrong network: checks fail closed. No mainnet fallback. Account/network changes clear both keys and recovered results; reconnect and restore your private backup.
-- Failed/ambiguous write: the write button stays blocked until reload. Inspect wallet activity first; a provider can broadcast successfully then lose its response. No automatic write retry.
-- Malformed entity ID: validation stops the query. Missing/malformed/wrong encryption key or tampering: the fetched ciphertext remains visible while previous plaintext is cleared and local decryption reports an error.
-- Missing/expired entity or network failure: the affected result is cleared and an error shown. You may retry a read. A read error never rolls back an already confirmed write.
-- Changing the entity ID clears both results; editing the decryption key clears its keyed result. The creation key and decryption key are separate inputs; editing one does not silently replace the other.
-- An empty note is valid; local recovery says **(Empty note)**.
+From the repository root, after `npm ci` and `npm run build`, run:
 
-Keys and plaintext are never saved to localStorage, sessionStorage, URL parameters, logs or analytics. Reload discards them. Do not reveal keys on a shared screen. Browser extensions and scripts with page access can inspect memory; use test data only. Metadata remains public, successful decryption does not authenticate the owner/attributes, and expiration does not guarantee erasure. Full guarantees live in the package README.
+```sh
+node --experimental-strip-types scripts/seed-rabdi.mjs
+```
 
-## Design and UI verification contract
+Inject `ARKIV_ACCESS_KEY_A`, `TEST_ENCRYPTION_ADDRESS`, `TEST_ENCRYPTION_PRIVATE_KEY` and the separate `ENCRYPTION_SEED_KEY` through the approved secret runner, never command-line values. The seed queries its indexed marker scoped to its expected owner, verifies actual bytes and authentication failures, and creates only if absent. A second run verifies the existing entity with zero writes. The private local journal blocks ambiguous resends; an expired seed or demonstrable chain reset may be recreated after a previously confirmed write. Never remove an uncertain journal to force a retry.
 
-The header uses the unmodified official white Arkiv SVG with its native aspect ratio; the source and SHA-256 are recorded in [brand provenance](public/brand/provenance.json). Deployment uses the existing static-build pattern: run the tests and build, then deploy only `dist` and `vercel.json` using the `.vercelignore` allowlist. The CSP restricts scripts to the app origin and reads to Tiramisu; response headers prevent framing and MIME sniffing. No environment configuration is required.
+## Verification scope
 
-Keep the primary action and key-backup warning visible. Secondary privacy, limits and explorer explanations use native disclosures that work with keyboard and touch. Both inputs use the same name, **Encryption key**: inspection uses the original key, not a second secret.
+Tests distinguish simulated provider/receipt behavior from live Rabdi transactions. Required operation tests cover non-gas revert, one gas-exhaustion retry, SDK success followed by a disagreeing receipt, success then null receipt then a new click, and uncertain errors. Gas tests cover small and 100,000-byte-class estimates, latest-state reads and the head cap. Registry tests reject local aliases/links.
 
-Reference created with **Claude Design**, using the selected **Arkiv Design System**: [Arkiv Encrypted Notes](https://claude.ai/design/p/e998f7d1-d811-4738-912c-4ae3d5531096). The reference's create/inspect structure, rounded panels, paired results and key visibility controls were adapted to the existing Vite sample. Its placeholder interactions were replaced with the existing npm encryption and real SDK calls. Brand treatments come from `Arkiv-Network/arkiv-ui`; the app uses dark Ink surfaces and Orange actions with the designated open Space Grotesk fallback and IBM Plex Mono. Fonts load from Google Fonts; no licensed font binaries are bundled.
-
-| Role | Family | Size / weight / line-height |
-| --- | --- | --- |
-| Page title | Space Grotesk | 32px / 500 / 1.1 |
-| Section title | Space Grotesk | 24px / 500 / 1.1 |
-| Body, input labels, inputs/buttons, encrypted/decrypted message | IBM Plex Mono | 16px / 400 / 1.5 |
-| Data labels | IBM Plex Mono | 16px / 500 / 1.5 |
-| Help, statuses, footer, network response/code | IBM Plex Mono | 14px / 400 / 1.5 |
-| Eyebrow | IBM Plex Mono | 14px / 500 / 1.5 |
-
-Compare 390, 768 and 1440px, plus 599/601 and 899/901px around the 600/900px breakpoints, dark mode and 200% zoom. Two comparison panels sit side by side above 900px and stack below. Check fonts, full labels, eye mouse/keyboard controls, empty/loading/error/success states, long payloads/IDs and no horizontal page overflow. Render all returned data as text. Executed evidence belongs in the package verification report.
+The established design is retained: official white logo and its [provenance](public/brand/provenance.json), Space Grotesk titles, IBM Plex Mono controls/body, existing dark Arkiv colors and two create/inspect sections. Verify 390/768/1440px, empty/loading/error/success, 200% zoom, full labels, key visibility controls, font loading and horizontal overflow. Release evidence lists the checks actually executed and any missing real browser-wallet signing.

@@ -1,164 +1,132 @@
-# arkiv-encryption
+﻿# arkiv-encryption
 
-Encrypt an Arkiv entity's payload before storing it, then authenticate and decrypt the retrieved bytes locally. Public attributes can still be queried. This small ESM package extracts the AES-GCM envelope already used by the Arkiv cookbook; it does not replace the Arkiv SDK.
+Encrypt bytes locally with AES-256-GCM before storing them in Arkiv entities. Indexed public columns remain queryable; encrypted content cannot be filtered. The package uses WebCrypto and does not sign transactions or replace the Arkiv SDK.
 
-**These packages are intended for testnet use.**
-
-Version: **0.1.0**. Release status and actually executed checks are recorded in [verification](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/arkiv-encryption-v0.1.0/docs/verification.md). A local build or tarball is not an npm release.
+**Testnet use only. Version 1.0.0 is published on npm.** The sample consumes exact registry `arkiv-encryption@1.0.0` with SDK 1.0.0 on Rabdi. See [verification](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/v1.0.0/docs/rabdi-verification.md) and [breaking changes](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/v1.0.0/CHANGELOG.md).
 
 - [npm](https://www.npmjs.com/package/arkiv-encryption)
 - [Source](https://github.com/SantiagoDevRel/arkiv-encrypted-entities)
-- [Runnable wallet sample](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/arkiv-encryption-v0.1.0/sample/README.md)
-- [Consumer agent guide](AGENTS.md) and [sample agent guide](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/arkiv-encryption-v0.1.0/sample/AGENTS.md)
+- [Wallet sample](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/v1.0.0/sample/README.md) and [consumer agent guide](AGENTS.md)
 
-Agents integrating the installed package should explicitly open `node_modules/arkiv-encryption/AGENTS.md` and this README. Package managers do not automatically load them.
+Agents must explicitly open this README and `node_modules/arkiv-encryption/AGENTS.md`. Package managers do not automatically load either guide.
 
-## Install and run a minimal example
+## Local roundtrip
 
-Requires Node.js 22+ with WebCrypto. The library itself needs no wallet, funds, RPC, access key or SDK.
+Node.js 22+ and WebCrypto are required. Crypto needs no wallet, funds, access key or SDK at runtime. The optional SDK peer is `^1.0.0`; the integration is developed against exactly 1.0.0. The crypto API and v1 envelope remain compatible with 0.1.0.
 
-Actually tested: Node **22.22.3** and TypeScript **5.9.3**; use that TypeScript version for the examples and generated typed-array declarations. Older TypeScript versions are not verified. The browser sample is tested in Chrome **152** with SDK **0.8.0**, viem **2.56.3** and **Tiramisu testnet (7738577)**. Other browsers, runtimes and networks are not claimed as tested.
+Install the published release:
 
 ```sh
-mkdir encrypted-demo
-cd encrypted-demo
-npm init -y
-npm install --save-exact arkiv-encryption@0.1.0
+npm install --save-exact arkiv-encryption@1.0.0
 ```
-
-Create `demo.mjs`:
 
 ```js
 import { generateKey, importKey, encryptPayload, decryptPayload } from 'arkiv-encryption';
-
-const secret = generateKey(); // Keep a private backup; never log this or put it on-chain.
+const secret = generateKey(); // Back up privately. Never log it or put it in an entity.
 const key = await importKey(secret);
 const ciphertext = await encryptPayload(key, 'Hello Arkiv');
 const recovered = await decryptPayload(key, ciphertext);
-console.log(new TextDecoder().decode(recovered));
-console.log('Envelope bytes:', ciphertext.length);
+console.log(new TextDecoder().decode(recovered)); // Hello Arkiv
+console.log(ciphertext.length); // 39
 ```
 
-```sh
-node demo.mjs
-```
+The published registry tarball matches the reviewed `arkiv-encryption-1.0.0.tgz` byte for byte. TypeScript 5.9.3 is the pinned development compiler. Compile an `.mts` consumer with `--module nodenext --target es2022 --lib es2022,dom --strict`.
 
-Expected output:
-
-```text
-Hello Arkiv
-Envelope bytes: 39
-```
-
-Each encryption produces different ciphertext. Empty plaintext and binary `Uint8Array` input are supported.
-
-
-### TypeScript and typed failures
-
-To check the minimal example with TypeScript, save the same code as `demo.mts` (instead of `demo.mjs`) and run:
-
-```sh
-npm install --save-dev --save-exact typescript@5.9.3
-npx tsc demo.mts --module nodenext --target es2022 --lib es2022,dom --strict --outDir build
-node build/demo.mjs
-```
-
-Handle authentication failures without logging key or payload data:
-
-```ts
-import { EncryptionError } from 'arkiv-encryption';
-try {
-  await decryptPayload(key, ciphertext);
-} catch (error) {
-  if (error instanceof EncryptionError) console.error(error.code); // e.g. DECRYPTION_FAILED
-  else throw error;
-}
-```
 ## Public API
 
 | Export | Contract |
 | --- | --- |
-| `generateKey(): string` | Cryptographically random 32-byte secret encoded as 64 hex characters. |
-| `importKey(raw: string \| Uint8Array): Promise<CryptoKey>` | Exactly 64 hex characters without `0x`, or 32 bytes. Returns a non-extractable AES-256-GCM handle. This is **not** password derivation. |
-| `encryptPayload(key, plaintext: string \| Uint8Array): Promise<Uint8Array>` | UTF-8 for strings. At most `MAX_PLAINTEXT_BYTES` (100,000 bytes). Fresh random IV per call. |
-| `decryptPayload(key, envelope: Uint8Array): Promise<Uint8Array>` | Returns bytes only after successful authentication; rejects wrong keys and tampering. |
-| `CONTENT_TYPE` | `application/vnd.arkiv.encrypted.v1`; store with the envelope to identify its format. |
-| `ENVELOPE` | Frozen algorithm, IV length, tag length and wire layout. |
-| `VERSION`, `MAX_PLAINTEXT_BYTES` | Package version and conservative single-entity input policy. |
-| `EncryptionError`, `EncryptionErrorCode` | Safe, stable error codes listed below; messages contain no secret data. |
+| `generateKey(): string` | Random 32-byte secret, encoded as 64 hex characters without `0x`. |
+| `importKey(raw: string \| Uint8Array): Promise<CryptoKey>` | Exact 64 hex characters or 32 bytes. Non-extractable AES-256-GCM handle; no password derivation. |
+| `encryptPayload(key, plaintext: string \| Uint8Array): Promise<Uint8Array>` | Strings are UTF-8. Fresh random IV. Up to 100,000 plaintext bytes. The API name remains compatible. |
+| `decryptPayload(key, envelope: Uint8Array): Promise<Uint8Array>` | Returns bytes only after authentication; rejects wrong keys and tampering. |
+| `CONTENT_TYPE` | `application/vnd.arkiv.encrypted.v1`, stored as a public string column. |
+| `ENVELOPE` | Frozen algorithm, IV/tag lengths and wire layout. |
+| `VERSION`, `MAX_PLAINTEXT_BYTES` | Package version and conservative input policy, not a chain maximum. |
+| `EncryptionError`, `EncryptionErrorCode` | Safe validation/authentication codes. |
 
-TypeScript declarations ship with the ESM export. CommonJS `require()` is not an advertised entry point; use `await import('arkiv-encryption')` from CommonJS. Browser use requires HTTPS or localhost and WebCrypto. No Node built-ins or runtime dependencies are bundled.
+ESM and TypeScript declarations ship together. CommonJS callers can use `await import('arkiv-encryption')`; `require()` is not an advertised entry point. Browsers require HTTPS or localhost. No Node built-ins, runtime SDK calls, key persistence, network writes or automatic retries are implemented by the crypto package.
 
-## Store and retrieve on Arkiv
+## Store and read on Rabdi
 
-The [sample](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/arkiv-encryption-v0.1.0/sample/README.md) is the complete implementation: wallet connection, network validation, local encryption, one signed entity creation, ciphertext retrieval and local decryption. It imports this npm package rather than duplicating encryption.
-
-For an existing SDK integration, install the tested dependencies:
+Rabdi is the DB-Chain testnet, chain **7794095**. Install exact integration dependencies:
 
 ```sh
-npm install --save-exact @arkiv-network/sdk@0.8.0 viem@2.56.3
+npm install --save-exact @arkiv-network/sdk@1.0.0 viem@2.56.3
 ```
 
-Given your SDK `walletClient` and `publicClient`, both configured for Tiramisu, and the key from the minimal example:
+Obtain a free [access key](https://hub.arkiv.network/access-keys) and test GLM from the [Hub faucet](https://hub.arkiv.network/faucet). `rabdi({ accessKey })` requires an explicit string; missing configuration raises `MissingAccessKeyError`. Fail closed with a configuration message and the access-key link. Do not use anonymous access as a fallback. Never bundle a server access key, signer or encryption key.
 
 ```ts
-import { CONTENT_TYPE, encryptPayload, decryptPayload } from 'arkiv-encryption';
-import { ExpirationTime } from '@arkiv-network/sdk';
-import { str } from '@arkiv-network/sdk/attr';
+import { createPublicClient } from '@arkiv-network/sdk';
+import { rabdi } from '@arkiv-network/sdk/chains';
+import { defineSchema, str, bytes } from '@arkiv-network/sdk/schema';
+import { http, hexToBytes } from 'viem';
+import { CONTENT_TYPE, decryptPayload } from 'arkiv-encryption';
 
-const payload = await encryptPayload(key, 'Non-sensitive integration test');
-const created = await walletClient.createEntity({
-  payload,
-  contentType: CONTENT_TYPE,
-  attributes: { app: str('encrypted-entities-sample') }, // Public and queryable.
-  expires: ExpirationTime.fromSeconds(86400),
+const Notes = defineSchema('arkiv-encryption-v1', {
+  app: str().indexed(),
+  seed: str().indexed().optional(),
+  contentType: str(),
+  ciphertext: bytes(), // Stored and selectable; bytes columns cannot be indexed.
 });
-const entity = await publicClient.getEntity(created.entityKey);
-if (entity.contentType !== CONTENT_TYPE || !entity.payload) throw new Error('Unexpected entity format');
-const result = await decryptPayload(key, entity.payload);
-console.log(new TextDecoder().decode(result));
+// accessKey and entityKey come from your locally configured integration.
+const publicClient = createPublicClient({ chain: rabdi({ accessKey }), transport: http() });
+const entity = await publicClient.getEntity(entityKey, Notes);
+if (entity.contentType.value !== CONTENT_TYPE) throw new Error('Unexpected encrypted format');
+const recovered = await decryptPayload(key, hexToBytes(entity.ciphertext.value));
 ```
 
-Expected recovered text: `Non-sensitive integration test`. Entity and transaction keys vary. Check your RPC's chain ID before writing, recheck the wallet's account/network before signing, and wait for the SDK's confirmed result. Do not automatically retry an uncertain write: it may already be on-chain. See the sample for these guards and gas estimation.
+The complete [sample implementation](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/v1.0.0/sample/src/main.ts) encrypts before `wallet.createEntity(Notes, values, { expiration }, txParams)`. Its [wallet transport](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/v1.0.0/sample/src/wallet.ts) obtains the exact unsigned SDK calldata, estimates it at `latest`, and sets `gas = max(1_000_000, 2 * estimate, retryMinimum)` plus explicit `gasPrice` and a nonce read at `latest`. The estimate must succeed before signing. Gas must not exceed half the latest block gas limit; use a smaller entity or split batches otherwise. A caller's larger gas minimum is allowed only within that same cap. Browser wallets receive these explicit fields so they do not choose a lower estimate.
 
-Tiramisu chain ID is **7738577**. The SDK's `tiramisu` export supplies the network configuration. Writes need a wallet with test GLM from the [Hub faucet](https://hub.arkiv.network/faucet). Reads and local crypto do not need a wallet. The public RPC can be used without an access key; provider limits can apply. If your integration requires a higher allowance, obtain an [access key](https://hub.arkiv.network/access-keys) and follow the provider's restrictions. Never embed a server-only key in browser code. No credentials are shipped.
+Read state at `latest`: Rabdi rejects historical hashes, `safe` and `finalized` with “arkiv serves state at the chain head only”. A reverted receipt with `gasUsed == gasLimit` indicates gas exhaustion. The [operation state machine](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/v1.0.0/sample/src/transaction.ts) permits one retry only after the SDK reports a confirmed revert and an independent receipt proves gas exhaustion; it re-estimates at `latest`, at least doubles the previous gas and checks the head cap. Any SDK success, missing receipt, disagreeing receipt or uncertain error blocks resending that operation. Always require `receipt.status === 'success'` before claiming confirmation.
+
+The sample uses `ExpirationTime.fromDays(1)`. Rabdi caps lifetimes at **7,884,000 blocks**, roughly 182 days at nominal block time; a seed uses `fromBlocks(7_883_970)` within that cap. Longer requests fail with `ExpiryBeyondMaxLifetime`. There is no unlimited lifetime on Rabdi; longer availability needs **Lifetime Extension**. Actual expiry is a block number, not a wall-clock guarantee.
+
+The deployed sample reads through its own `/api/rpc` server endpoint, whose `ARKIV_ACCESS_KEY` stays server-side. Visitors configure their own authorized Rabdi RPC in their wallet for signing. Local Vite alone does not run the server endpoint; see the sample guide for configuration.
 
 ## Privacy and key custody
 
-- **Only the payload is encrypted.** Attributes, owner/creator addresses, entity key, content type, expiration, transactions and payload length remain public. In this unpadded format the exact plaintext byte length is envelope length minus 28. Query public attributes, not encrypted plaintext.
-- Format: **12-byte random IV || ciphertext || 16-byte authentication tag**, AES-256-GCM with a 128-bit tag. There is no compression and no extra authenticated data. Format version is identified by `CONTENT_TYPE`, not an embedded header. Existing cookbook envelopes use the same byte order; compressed cookbook content still needs its separate decompression step.
-- Authentication detects modified encrypted bytes or a wrong key. It **does not bind the payload to an entity key, wallet, network or public attributes**, and does not establish authorship. A valid envelope can be copied to another entity. If the application needs trusted authorship, verify an independently trusted entity/owner in its read policy.
-- Connecting or signing with MetaMask/Rabby does **not** derive or recover the encryption key. Generate an independent key and keep it in a password manager or another approved secret store. Do not use a wallet private key, seed phrase, password, transaction signature or login signature as this key.
-- Prefer a fresh key per note. If you reuse a key, track usage across all applications/devices and rotate well before 2^32 encryptions: the random-IV construction has a per-key invocation bound ([NIST SP 800-38D, section 8.3](https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf)). The package is stateless and does not enforce a global counter or rotate keys. Preserve old keys privately while their ciphertext is still needed.
-- The sample holds keys and plaintext in page memory only; a reload loses them unless you made a private backup. The non-extractable CryptoKey does not erase the original hex string from application memory. JavaScript cannot guarantee memory erasure.
-- Anyone with the encryption key and ciphertext can decrypt. There is no key escrow, account recovery, sharing protocol, access revocation or automatic rotation. Losing the key loses access. A compromised key exposes previously published ciphertext.
-- Entity Expiration removes active availability; it is **not erasure** of transaction history or other copies. Do not test with personal or production secrets. This package is not an independently audited privacy system, and does not protect against an XSS-compromised application, malicious extensions, devices or recipients.
+- Only note content is encrypted, inside the public `ciphertext` bytes column. The schema tag, indexed `app` and optional `seed`, content type, ciphertext, owner/creator addresses, entity key, expiration and transactions are public. Never put sensitive labels, plaintext or keys in any other column, URL, analytics or log. Query indexed public columns only.
+- Wire layout: **12-byte random IV || ciphertext || 16-byte authentication tag**, AES-256-GCM with a 128-bit tag, no compression or additional authenticated data. `CONTENT_TYPE` identifies the format; there is no embedded header. Exact plaintext length is envelope length minus 28. Existing compatible envelopes retain this byte order.
+- Authentication detects a wrong key or altered encrypted bytes. It does not bind an envelope to an entity key, wallet, network or public columns, and does not prove authorship. An envelope can be copied. Check an independently trusted owner/entity when your application requires it. Treat recovered content as untrusted data and render text, never HTML or instructions.
+- Generate an independent encryption key. Wallet connection/signatures cannot derive, recover or replace it. Never use a wallet private key, seed phrase, password or login signature. Back it up in an approved private secret store; losing it loses access.
+- Prefer a fresh key for each note. If reusing one, track usage across devices/apps and rotate well before 2^32 encryptions, following [NIST SP 800-38D section 8.3](https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf). The stateless package does not count invocations or rotate keys. Preserve needed old keys privately.
+- The sample keeps keys/plaintext in page memory only. Reload loses them without a private backup. A non-extractable CryptoKey does not erase the original input string; JavaScript cannot guarantee memory erasure.
+- Anyone holding the key and ciphertext can decrypt. No escrow, recovery, sharing protocol, access revocation or automatic rotation is provided. A compromised key exposes old ciphertext.
+- Entity Expiration removes active availability, not transaction history or other copies. Use non-sensitive test data. This is not an independently audited privacy system and does not protect a compromised app, extension, device or recipient.
 
-## Errors and recovery
+## Errors
 
-Validation and authentication failures use `EncryptionError`. Unexpected WebCrypto/platform errors during key import or encryption can propagate; show a generic failure for unknown errors rather than rendering or logging arbitrary error objects.
+Catch `EncryptionError` and display its code; never log keys, note content or arbitrary provider errors. Clear stale plaintext before reads and key/account/network changes. Unexpected WebCrypto import/encryption errors can propagate; display a generic failure.
 
 | Code / condition | Resolution |
 | --- | --- |
-| `INVALID_KEY` | Supply the original 64-character hex encryption key, without `0x`, whitespace or password text; or generate a key for new data. A new key cannot open old data. |
-| `DECRYPTION_FAILED` | Verify the original key and ciphertext source. Wrong key and modified ciphertext intentionally have the same failure; no plaintext is returned. |
-| `INVALID_ENVELOPE` | Retrieve the complete v1 binary payload, not its JSON/hex representation. Verify the content type. |
-| `INVALID_INPUT` | Use text or Uint8Array, within 100,000 UTF-8 bytes. Large-file chunking is outside this package. |
+| `INVALID_KEY` | Use the original 64-character hex key without `0x` or whitespace, or 32 bytes. A new key cannot open existing data. |
+| `DECRYPTION_FAILED` | Wrong key and modified ciphertext intentionally share one failure; no plaintext is returned. |
+| `INVALID_ENVELOPE` | Retrieve the complete v1 binary envelope and verify its content type. |
+| `INVALID_INPUT` | Use a string or Uint8Array within 100,000 UTF-8 bytes. Chunking is outside this tool. |
 | `CRYPTO_UNAVAILABLE` | Use Node 22+ or a modern browser on HTTPS/localhost. |
-| Wallet absent/rejected | Install/unlock MetaMask or Rabby and approve the intended testnet request, or read without a wallet. |
-| Wrong network / insufficient funds | Use Tiramisu in both wallet and RPC; obtain test GLM from the faucet. |
-| Missing/expired entity | Check entity key and network. An expired entity may no longer be retrievable through the active API. |
-| RPC failure/rate limit | Retry a **read** later or use an authorized provider endpoint. Never infer write failure from a timeout or automatically resubmit. |
+| `MissingAccessKeyError` / proxy 503 | Configure a free access key locally/server-side. Do not copy provider errors containing URLs into the UI. |
+| Wallet network missing / rejected | Configure Rabdi with your own provider URL, fund from the faucet and approve the intended request. |
+| Missing/expired entity | Verify the identifier/network. Active APIs may no longer return expired entities. |
+| RPC timeout or ambiguous write | Retry reads later. Check wallet/explorer activity before starting a distinct operation. Never infer a failed write from a timeout. |
 
-## Source development
+## Development
 
 ```sh
-git clone https://github.com/SantiagoDevRel/arkiv-encrypted-entities.git
-cd arkiv-encrypted-entities
 npm ci
-npm test
+npm run build
 npm run typecheck
-npm pack --dry-run
+npm run lint
+npm test
+npm pack
+cd sample
+npm ci
+npm run typecheck
+npm run lint
+npm test
+npm run build
 ```
 
-The sample has its own install and lockfile; see its README. Crypto interoperability tests use Node's independent `createCipheriv`/`createDecipheriv` implementation against the package's WebCrypto output in both directions. Exact release evidence, browser widths and network outcomes belong in [docs/verification.md](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/arkiv-encryption-v0.1.0/docs/verification.md), not in implied support claims.
+Run installs/builds/tests on the DGX under this workspace's project rules. Crypto tests verify native Node interoperability in both directions, empty/binary/maximum inputs and authentication failures. Sample tests cover registry provenance, wallet/session/gas checks, server read restrictions and the required persistent operation scenarios. [Release verification](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/v1.0.0/docs/rabdi-verification.md) distinguishes mocks, live testnet evidence and unverified browser wallet signing.
