@@ -5,7 +5,17 @@ const allowed = new Set(['eth_chainId', 'eth_blockNumber', 'eth_gasPrice', 'eth_
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store, max-age=0');
   res.setHeader('CDN-Cache-Control', 'no-store');
+  const respond = (status, value) => res.status(status).json(value);
+  const origin = req.headers?.origin;
+  if (origin !== undefined) {
+    try {
+      if (typeof origin !== 'string' || new URL(origin).host !== String(req.headers?.host ?? '').toLowerCase()) return respond(403, { error: 'Origin not allowed.' });
+    } catch { return respond(403, { error: 'Origin not allowed.' }); }
+  }
+  if (String(req.headers?.['sec-fetch-site'] ?? '').split(',').some(site => site.trim().toLowerCase() === 'cross-site')) return respond(403, { error: 'Origin not allowed.' });
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST required.' });
+  const contentType = req.headers?.['content-type'];
+  if (typeof contentType !== 'string' || contentType.split(';', 1)[0].trim().toLowerCase() !== 'application/json') return respond(415, { error: 'Use application/json for read requests.' });
   if (!process.env.ARKIV_ACCESS_KEY) return res.status(503).json({ error: 'Server access key is missing. Configure ARKIV_ACCESS_KEY; obtain a key at https://hub.arkiv.network/access-keys.' });
   const address = String(req.headers['x-forwarded-for'] ?? 'unknown').split(',')[0];
   const minute = Math.floor(Date.now() / 60000);
