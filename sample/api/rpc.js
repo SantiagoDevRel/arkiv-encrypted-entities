@@ -1,3 +1,14 @@
+// Origin is a serialized origin, never a general URL. Forwarded headers do not select trust.
+function sameDeploymentOrigin(origin, host) {
+  if (typeof origin !== 'string' || typeof host !== 'string' || !host || !(origin.startsWith('https://') || origin.startsWith('http://'))) return false;
+  const parsed = new URL(origin);
+  const hostname = host.split(':', 1)[0].toLowerCase();
+  const scheme = hostname === 'localhost' || hostname === '127.0.0.1' ? 'http://' : 'https://';
+  const deployment = new URL(scheme + host);
+  if (/[/\\?#@\s]/.test(host) || deployment.username || deployment.password || deployment.pathname !== '/' || deployment.search || deployment.hash) return false;
+  return !parsed.username && !parsed.password && parsed.pathname === '/' && !parsed.search && !parsed.hash && parsed.origin === origin && parsed.origin === deployment.origin;
+}
+
 import { rabdi } from '@arkiv-network/sdk/chains';
 
 const limits = new Map();
@@ -5,7 +16,17 @@ const allowed = new Set(['eth_chainId', 'eth_blockNumber', 'eth_gasPrice', 'eth_
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store, max-age=0');
   res.setHeader('CDN-Cache-Control', 'no-store');
+  const respond = (status, value) => res.status(status).json(value);
+  const origin = req.headers?.origin;
+  if (origin !== undefined) {
+    try {
+      if (!sameDeploymentOrigin(origin, req.headers?.host)) return respond(403, { error: 'Origin not allowed.' });
+    } catch { return respond(403, { error: 'Origin not allowed.' }); }
+  }
+  if (String(req.headers?.['sec-fetch-site'] ?? '').split(',').some(site => site.trim().toLowerCase() === 'cross-site')) return respond(403, { error: 'Origin not allowed.' });
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST required.' });
+  const contentType = req.headers?.['content-type'];
+  if (typeof contentType !== 'string' || contentType.split(';', 1)[0].trim().toLowerCase() !== 'application/json') return respond(415, { error: 'Use application/json for read requests.' });
   if (!process.env.ARKIV_ACCESS_KEY) return res.status(503).json({ error: 'Server access key is missing. Configure ARKIV_ACCESS_KEY; obtain a key at https://hub.arkiv.network/access-keys.' });
   const address = String(req.headers['x-forwarded-for'] ?? 'unknown').split(',')[0];
   const minute = Math.floor(Date.now() / 60000);
