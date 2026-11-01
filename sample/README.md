@@ -85,3 +85,5 @@ Tests distinguish simulated provider/receipt behavior from live Rabdi transactio
 The established design is retained: official white logo and its [provenance](public/brand/provenance.json), Space Grotesk titles, IBM Plex Mono controls/body, existing dark Arkiv colors and two create/inspect sections. Verify 390/768/1440px, empty/loading/error/success, 200% zoom, full labels, key visibility controls, font loading and horizontal overflow. Release evidence lists the checks actually executed and any missing real browser-wallet signing.
 
 The read proxy rejects foreign Origin hosts and cross-site Fetch Metadata before contacting Rabdi. POST bodies require `Content-Type: application/json`. JSON clients without Origin remain supported; these browser boundary checks do not authenticate arbitrary HTTP clients.
+
+Origin must be its exact canonical `scheme://host[:port]` serialization, with no credentials, path, query or fragment. The expected origin uses the request Host and HTTPS; only `localhost` and `127.0.0.1` development hosts use HTTP. Forwarded scheme/host headers cannot change this policy. Cross-site Fetch Metadata and POST JSON checks still apply.
