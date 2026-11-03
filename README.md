@@ -2,7 +2,7 @@
 
 Encrypt binary data locally with AES-256-GCM for a `bytes` column. Attributes stay public. Indexed public columns remain queryable; encrypted content cannot be filtered. The package uses WebCrypto and does not sign transactions or replace the Arkiv SDK.
 
-**arkiv-encryption 1.1.1 · Rabdi testnet.** Encrypt binary data for a `bytes` column; attributes stay public. The wallet sample pins exact registry 1.1.0 independently of the library API documented here.
+**arkiv-encryption 1.1.1 · Rabdi testnet.** Encrypt binary data for a `bytes` column; attributes stay public. The wallet sample pins exact registry 1.1.1 independently of the library API documented here.
 
 - [npm](https://www.npmjs.com/package/arkiv-encryption)
 - [Source](https://github.com/SantiagoDevRel/arkiv-encrypted-entities)
