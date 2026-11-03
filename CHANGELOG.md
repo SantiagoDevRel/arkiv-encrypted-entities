@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.1
+
+- Verify the optional SDK `^1.0.0` peer with 1.0.1 and pin development and the sample SDK to 1.0.1.
+- Preserve receipt-authorized gas-exhaustion retries for both supported SDK error messages.
+- Document pre-send expiry validation and the maximum-lifetime helper; preserve dated verification history.
+- Add packed-guidance and peer compatibility checks with negative mutations.
+
 ## 1.1.0
 
 - Add encryptBytes/decryptBytes with identical deprecated aliases and unchanged v1 format. Guard every source-map string and preserve dated evidence.

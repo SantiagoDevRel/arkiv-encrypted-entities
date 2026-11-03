@@ -14,12 +14,12 @@ Read [README.md](README.md) explicitly: it defines installation, crypto API, wir
 ## Invariants
 
 - Use public package imports. Keep the v1 envelope order and compatible crypto API names. Do not copy crypto, derive keys from signatures, invent a password KDF, or redesign this tool.
-- SDK integration is exactly 1.0.0 on Rabdi (7794095), with typed schema columns and ciphertext in `bytes()`. Only indexed public columns are filterable. The package itself does not sign or write.
+- SDK integration uses `^1.0.0`, verified with 1.0.1 on Rabdi (7794095), with typed schema columns and ciphertext in `bytes()`. Only indexed public columns are filterable. The package itself does not sign or write.
 - Encrypt before SDK calls. Never put plaintext, keys or sensitive labels in public columns, URLs, logs, analytics, bundles or errors. Render recovered bytes as untrusted text; clear stale plaintext on failure or input/session changes.
 - Use explicit latest-state gas estimates, twofold headroom with a 1,000,000 minimum, explicit gasPrice and latest nonce. Reject gas above half the head limit. Require successful receipts. Follow the sample's persistent operation state machine; never resend an SDK success or an uncertain write. Only one independently verified gas-exhaustion revert permits a retry.
 - Rabdi limits Entity Expiration to 7,884,000 blocks. Use bounded lifetimes and Lifetime Extension; no unlimited lifetime. Never use historical/safe/finalized state reads.
 - Server access keys remain server-side. Visitors configure their own authorized wallet RPC. Fail closed on missing access-key configuration with a useful message.
-- README, AGENTS and CLAUDE ship in the npm allowlist. Install `npm install --save-exact arkiv-encryption@1.1.0`. The wallet sample independently pins registry 1.1.0 and its matching lockfile.
+- README, AGENTS and CLAUDE ship in the npm allowlist. Install `npm install --save-exact arkiv-encryption@1.1.1`. The wallet sample independently pins registry 1.1.0 and its matching lockfile.
 
 ## Verify
 

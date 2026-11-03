@@ -1,3 +1,5 @@
+> Historical release evidence measured with SDK 1.0.0 on October 31, 2026. Current installation and verification guidance is in README.md and AGENTS.md.
+
 > Historical dated evidence, preserved from 0638999. For current API and installation guidance, use the root README and AGENTS.md.
 
 # Rabdi / SDK 1.0.0 release verification

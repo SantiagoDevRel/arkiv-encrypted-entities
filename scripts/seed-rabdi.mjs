@@ -65,7 +65,7 @@ async function main() {
   }};
   await writeFile(journal,JSON.stringify({phase:'sending',marker}),{mode:0o600});
   const created=await submitOperation(operation,{
-    send:async minimum=>writer(p,account.address,rpc,operation,minimum,()=>{}).createEntity(Notes,{app:'encrypted-entities-sample',seed:marker,contentType:CONTENT_TYPE,ciphertext},{expiration:ExpirationTime.fromBlocks(7_883_970)},{gas:minimum,gasPrice:await getGasPrice(rpc)}),
+    send:async minimum=>writer(p,account.address,rpc,operation,minimum,()=>{}).createEntity(Notes,{app:'encrypted-entities-sample',seed:marker,contentType:CONTENT_TYPE,ciphertext},{expiration:ExpirationTime.max()},{gas:minimum,gasPrice:await getGasPrice(rpc)}),
     receipt:hash=>rpc.getTransactionReceipt({hash}).catch(()=>null),
     confirmedRevertHash,
     headGasLimit:async()=>(await rpc.getBlock({blockTag:'latest'})).gasLimit,

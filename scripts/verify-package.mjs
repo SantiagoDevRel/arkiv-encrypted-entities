@@ -11,10 +11,10 @@ const consumer=path.join(process.env.TMPDIR,'encryption-clean-consumer');
 await mkdir(consumer);
 const run=(cmd,args,cwd)=>{const p=spawnSync(cmd,args,{cwd,stdio:'inherit'});assert.equal(p.status,0,`${cmd} failed`);};
 await writeFile(path.join(consumer,'package.json'),JSON.stringify({name:'encryption-clean-consumer',private:true,type:'module'}));
-run('npm',['install','--save-exact','--no-audit','--no-fund',registry?'arkiv-encryption@1.1.0':tarball],consumer);
+run('npm',['install','--save-exact','--no-audit','--no-fund',registry?`arkiv-encryption@${version}`:tarball],consumer);
 const probe=`import assert from 'node:assert/strict';
 import { VERSION, generateKey, importKey, encryptBytes, decryptBytes, encrypt${legacy}, decrypt${legacy} } from 'arkiv-encryption';
-assert.equal(VERSION,'1.1.0');
+assert.equal(VERSION,'${version}');
 const key=await importKey(generateKey()), input=new Uint8Array([0,255,128,0,65]);
 assert.equal(encryptBytes,encrypt${legacy}); assert.equal(decryptBytes,decrypt${legacy});
 const ciphertext=await encrypt${legacy}(key,input);
@@ -39,8 +39,8 @@ run('node',['build/types.mjs'],consumer);
 for(const file of ['README.md','AGENTS.md','CLAUDE.md'])assert.ok((await readFile(path.join(consumer,'node_modules/arkiv-encryption',file))).length>0);
 const lock=JSON.parse(await readFile(path.join(consumer,'package-lock.json'),'utf8'));
 if(registry) {
-  assert.equal(lock.packages['node_modules/arkiv-encryption'].version,'1.1.0');
-  assert.equal(lock.packages['node_modules/arkiv-encryption'].resolved,'https://registry.npmjs.org/arkiv-encryption/-/arkiv-encryption-1.1.0.tgz');
+  assert.equal(lock.packages['node_modules/arkiv-encryption'].version,version);
+  assert.equal(lock.packages['node_modules/arkiv-encryption'].resolved,`https://registry.npmjs.org/arkiv-encryption/-/arkiv-encryption-${version}.tgz`);
   assert.equal(await readFile(path.join(consumer,'node_modules/arkiv-encryption/dist/index.js'),'utf8'),await readFile(path.join(root,'dist/index.js'),'utf8'),'Published implementation differs from committed source build.');
 }
 const declarations=await readFile(path.join(consumer,'node_modules/arkiv-encryption/dist/index.d.ts'),'utf8');
