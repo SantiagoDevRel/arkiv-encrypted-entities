@@ -2,7 +2,7 @@
 
 Encrypt binary data locally with AES-256-GCM for a `bytes` column. Attributes stay public. Indexed public columns remain queryable; encrypted content cannot be filtered. The package uses WebCrypto and does not sign transactions or replace the Arkiv SDK.
 
-**arkiv-encryption 1.1.0 · Rabdi testnet.** Encrypt binary data for a `bytes` column; attributes stay public. The wallet sample pins exact registry 1.1.0 independently of the library API documented here.
+**arkiv-encryption 1.1.1 · Rabdi testnet.** Encrypt binary data for a `bytes` column; attributes stay public. The wallet sample pins exact registry 1.1.0 independently of the library API documented here.
 
 - [npm](https://www.npmjs.com/package/arkiv-encryption)
 - [Source](https://github.com/SantiagoDevRel/arkiv-encrypted-entities)
@@ -12,12 +12,12 @@ Agents must explicitly open this README and `node_modules/arkiv-encryption/AGENT
 
 ## Local roundtrip
 
-Node.js 22+ and WebCrypto are required. Crypto needs no wallet, funds, access key or SDK at runtime. The optional SDK peer is `^1.0.0`; the integration is developed against exactly 1.0.0. The crypto API and v1 envelope remain compatible with 0.1.0.
+Node.js 22+ and WebCrypto are required. Crypto needs no wallet, funds, access key or SDK at runtime. The optional SDK peer is `^1.0.0`; the integration is verified with 1.0.1. The crypto API and v1 envelope remain compatible with 0.1.0.
 
-Install version 1.1.0:
+Install version 1.1.1:
 
 ```sh
-npm install --save-exact arkiv-encryption@1.1.0
+npm install --save-exact arkiv-encryption@1.1.1
 ```
 
 ```js
@@ -52,7 +52,7 @@ ESM and TypeScript declarations ship together. CommonJS callers can use `await i
 Rabdi is the DB-Chain testnet, chain **7794095**. Install exact integration dependencies:
 
 ```sh
-npm install --save-exact @arkiv-network/sdk@1.0.0 viem@2.56.3
+npm install --save-exact @arkiv-network/sdk@1.0.1 viem@2.56.3
 ```
 
 Obtain a free [access key](https://hub.arkiv.network/access-keys) and test GLM from the [Hub faucet](https://hub.arkiv.network/faucet). `rabdi({ accessKey })` requires an explicit string; missing configuration raises `MissingAccessKeyError`. Fail closed with a configuration message and the access-key link. Do not use anonymous access as a fallback. Never bundle a server access key, signer or encryption key.
@@ -79,9 +79,9 @@ const recovered = await decryptBytes(key, hexToBytes(entity.ciphertext.value));
 
 The complete [sample implementation](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/feat/encrypted-entities/sample/src/main.ts) encrypts before `wallet.createEntity(Notes, values, { expiration }, txParams)`. Its [wallet transport](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/feat/encrypted-entities/sample/src/wallet.ts) obtains the exact unsigned SDK calldata, estimates it at `latest`, and sets `gas = max(1_000_000, 2 * estimate, retryMinimum)` plus explicit `gasPrice` and a nonce read at `latest`. The estimate must succeed before signing. Gas must not exceed half the latest block gas limit; use a smaller entity or split batches otherwise. A caller's larger gas minimum is allowed only within that same cap. Browser wallets receive these explicit fields so they do not choose a lower estimate.
 
-Read state at `latest`: Rabdi rejects historical hashes, `safe` and `finalized` with “arkiv serves state at the chain head only”. A reverted receipt with `gasUsed == gasLimit` indicates gas exhaustion. The [operation state machine](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/feat/encrypted-entities/sample/src/transaction.ts) permits one retry only after the SDK reports a confirmed revert and an independent receipt proves gas exhaustion; it re-estimates at `latest`, at least doubles the previous gas and checks the head cap. Any SDK success, missing receipt, disagreeing receipt or uncertain error blocks resending that operation. Always require `receipt.status === 'success'` before claiming confirmation.
+Read state at `latest`: Rabdi rejects historical hashes, `safe` and `finalized` with “arkiv serves state at the chain head only”. SDK 1.0.1 supplies default gas headroom and reports out-of-gas as `EntityMutationError`; the explicit recipe above remains required. A reverted receipt with `gasUsed == gasLimit` indicates gas exhaustion. The [operation state machine](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/feat/encrypted-entities/sample/src/transaction.ts) permits one retry only after the SDK reports a confirmed revert and an independent receipt proves gas exhaustion; it re-estimates at `latest`, at least doubles the previous gas and checks the head cap. Any SDK success, missing receipt, disagreeing receipt or uncertain error blocks resending that operation. Always require `receipt.status === 'success'` before claiming confirmation.
 
-The sample uses `ExpirationTime.fromDays(1)`. Rabdi caps lifetimes at **7,884,000 blocks**, roughly 182 days at nominal block time; a seed uses `fromBlocks(7_883_970)` within that cap. Longer requests fail with `ExpiryBeyondMaxLifetime`. There is no unlimited lifetime on Rabdi; longer availability needs **Lifetime Extension**. Actual expiry is a block number, not a wall-clock guarantee.
+The sample uses `ExpirationTime.fromDays(1)`. Rabdi caps lifetimes at **7,884,000 blocks**, roughly 182 days at nominal block time. On SDK 1.0.1+, the seed uses `ExpirationTime.max()` for the longest lifetime from the landing block, without manual subtraction. An over-maximum request fails before sending with `InvalidExpiryError`. The earlier peer version could instead send and revert with `ExpiryBeyondMaxLifetime`. A below-maximum inclusion margin was needed only for SDK `1.0.0` maximum-lifetime guidance. Longer availability requires **Lifetime Extension**. Actual expiry is a block number, not a wall-clock guarantee.
 
 The deployed sample reads through its own `/api/rpc` server endpoint, whose `ARKIV_ACCESS_KEY` stays server-side. Visitors configure their own authorized Rabdi RPC in their wallet for signing. Local Vite alone does not run the server endpoint; see the sample guide for configuration.
 

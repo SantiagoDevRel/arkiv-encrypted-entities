@@ -50,7 +50,10 @@ export async function assertSession(p: Provider, account: Hex) {
   if (accounts[0]?.toLowerCase() !== account.toLowerCase() || Number(await p.request({ method: 'eth_chainId' })) !== chain.id) throw new UserError('The account or network changed. Reconnect on Rabdi before signing.');
 }
 export function confirmedRevertHash(error: unknown): Hex | undefined {
-  return error instanceof EntityMutationError && error.txHash && error.message.startsWith(`Transaction ${error.txHash} reverted.`) ? error.txHash : undefined;
+  // This is only a candidate hash. submitOperation independently requires a reverted
+  // receipt whose gasUsed equals the actual sent limit before authorizing one retry.
+  // SDK minor/patch versions may change diagnostic wording, including gas exhaustion.
+  return error instanceof EntityMutationError && error.txHash && /^0x[0-9a-fA-F]{64}$/.test(error.txHash) ? error.txHash : undefined;
 }
 export function writer(p: Provider, account: Hex, rpc: ReturnType<typeof publicClient>, op: Operation, minimumGas: bigint, onSent: (hash: Hex) => void) {
   return createWalletClient({ account, chain, transport: custom({ request: async args => {
