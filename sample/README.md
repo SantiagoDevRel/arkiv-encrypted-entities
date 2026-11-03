@@ -2,9 +2,9 @@
 
 Create an encrypted note, then compare the same public ciphertext with and without a locally entered encryption key. The UI uses the existing Arkiv layout and English copy. This is a testnet demonstration, not an independently audited privacy system.
 
-**Published dependencies:** **arkiv-encryption@1.1.0**, SDK **1.0.1**, viem **2.56.3**, TypeScript **5.9.3**, Vite **8.2.2**. The encryption package is installed from the public npm registry; its tarball matches the reviewed artifact. See [verification](../docs/rabdi-verification.md).
+**Published dependencies:** **arkiv-encryption@1.1.1**, SDK **1.0.1**, viem **2.56.3**, TypeScript **5.9.3**, Vite **8.2.2**. The encryption package is installed from the public npm registry; its tarball matches the reviewed artifact. See the [1.1.1 release](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/releases/tag/v1.1.1). [Earlier release verification](../docs/rabdi-verification.md) is dated history.
 
-Read the [package README](../README.md), [sample AGENTS](AGENTS.md) and [package AGENTS](../AGENTS.md) before integration.
+Read the [package README for 1.1.1](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/v1.1.1/README.md), [sample AGENTS](AGENTS.md) and [package AGENTS for 1.1.1](https://github.com/SantiagoDevRel/arkiv-encrypted-entities/blob/v1.1.1/AGENTS.md) before integration.
 
 ## Configure and run
 
