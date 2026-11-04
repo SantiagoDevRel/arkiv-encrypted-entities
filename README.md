@@ -83,7 +83,7 @@ Read state at `latest`: Rabdi rejects historical hashes, `safe` and `finalized` 
 
 The sample uses `ExpirationTime.fromDays(1)`. Rabdi caps lifetimes at **7,884,000 blocks**, roughly 182 days at nominal block time. On SDK 1.0.1+, the seed uses `ExpirationTime.max()` for the longest lifetime from the landing block, without manual subtraction. An over-maximum request fails before sending with `InvalidExpiryError`. The earlier peer version could instead send and revert with `ExpiryBeyondMaxLifetime`. A below-maximum inclusion margin was needed only for SDK `1.0.0` maximum-lifetime guidance. Longer availability requires **Lifetime Extension**. Actual expiry is a block number, not a wall-clock guarantee.
 
-The deployed sample reads through its own `/api/rpc` server endpoint, whose `ARKIV_ACCESS_KEY` stays server-side. Visitors configure their own authorized Rabdi RPC in their wallet for signing. Local Vite alone does not run the server endpoint; see the sample guide for configuration.
+The deployed sample reads through its own `/api/rpc` server endpoint, whose `ARKIV_ACCESS_KEY` stays server-side. Wallets sign through the keyless public RPC `https://rpc.rabdi.db-chain.testnet.arkiv.network`, which the sample adds when a wallet does not know Rabdi. Never put an access key or a keyed RPC URL in a wallet. Local Vite alone does not run the server endpoint; see the sample guide for configuration.
 
 ## Privacy and key custody
 
@@ -108,7 +108,7 @@ Catch `EncryptionError` and display its code; never log keys, note content or ar
 | `INVALID_INPUT` | Use a string or Uint8Array within 100,000 UTF-8 bytes. Chunking is outside this tool. |
 | `CRYPTO_UNAVAILABLE` | Use Node 22+ or a modern browser on HTTPS/localhost. |
 | `MissingAccessKeyError` / proxy 503 | Configure a free access key locally/server-side. Do not copy provider errors containing URLs into the UI. |
-| Wallet network missing / rejected | Configure Rabdi with your own provider URL, fund from the faucet and approve the intended request. |
+| Wallet network missing / rejected | Approve the request to add Rabdi with the keyless public RPC `https://rpc.rabdi.db-chain.testnet.arkiv.network` (or add that URL by hand), fund from the faucet and approve the intended request. |
 | Missing/expired entity | Verify the identifier/network. Active APIs may no longer return expired entities. |
 | RPC timeout or ambiguous write | Retry reads later. Check wallet/explorer activity before starting a distinct operation. Never infer a failed write from a timeout. |
 
