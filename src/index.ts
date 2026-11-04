@@ -1,5 +1,5 @@
 /** Adapted from arkiv-cookbook/src/lib/arkiv/crypto.ts: one WebCrypto format in both runtimes. */
-export const VERSION = '1.1.2';
+export const VERSION = '1.1.3';
 export const CONTENT_TYPE = 'application/vnd.arkiv.encrypted.v1';
 export const ENVELOPE = Object.freeze({ algorithm: 'AES-GCM', ivBytes: 12, tagBytes: 16, layout: 'iv || ciphertext || tag' } as const);
 /** Conservative policy for a single small entity; not a network maximum. */

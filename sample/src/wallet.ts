@@ -3,6 +3,7 @@ import { rabdi } from '@arkiv-network/sdk/chains';
 import { custom, http, type Hex } from 'viem';
 import { estimateGas, getGasPrice } from 'viem/actions';
 import type { Operation } from './transaction';
+import { isUnknownChainError } from './unknown-chain.ts';
 export interface Provider {
   request(args: { method: string; params?: unknown }): Promise<unknown>;
   on?(event: string, handler: () => void): void;
@@ -43,10 +44,11 @@ export async function connect(p: Provider): Promise<Hex> {
   const accounts = await p.request({ method: 'eth_requestAccounts' }) as string[];
   if (!accounts[0] || !/^0x[0-9a-fA-F]{40}$/.test(accounts[0])) throw new UserError('The wallet did not share an account.');
   if (Number(await p.request({ method: 'eth_chainId' })) !== chain.id) {
-    // A wallet without Rabdi is offered only the keyless public RPC. Never add an access key to a wallet.
+    // A wallet without Rabdi (4902, also MetaMask Mobile's wrapped -32603) is offered only the keyless public RPC.
+    // Never add an access key to a wallet.
     try { await p.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: `0x${chain.id.toString(16)}` }] }); }
     catch (error) {
-      if ((error as { code?: number }).code !== 4902) throw error;
+      if (!isUnknownChainError(error)) throw error;
       await p.request({ method: 'wallet_addEthereumChain', params: [rabdiAddChainParams()] });
       await p.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: `0x${chain.id.toString(16)}` }] });
     }

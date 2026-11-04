@@ -1,7 +1,7 @@
 [
   {
     "file": "CHANGELOG.md",
-    "sha256": "be55c360051ff8d27f48e835d1f5994d6f89ab6aa6bbe1731758249e8f718d7d",
+    "sha256": "816b01d7dfb48e07286e21af383ec2556a9056c2ecde282aea356ec6978fd92f",
     "reason": "Immutable release history or a clearly marked historical section.",
     "lines": [
       "- Breaking integration migration to SDK 1\u002e0\u002e0 and Rabdi (7794095). Entity content is now a `ciphertext: bytes()` column alongside public typed columns; only indexed public columns can be filtered."
@@ -19,7 +19,7 @@
   },
   {
     "file": "README.md",
-    "sha256": "679bb08459b5655615ca828845f8233b7e3afc76ade44c6356eaedfea1ca80a8",
+    "sha256": "7052adffdc74ad7ddf5f4fe22c688d1c3e2736fbabec3dadbf9f195d19640d8c",
     "reason": "Explicit SDK-version compatibility scope; never a current installation pin.",
     "lines": [
       "The sample uses `ExpirationTime.fromDays(1)`. Rabdi caps lifetimes at **7,884,000 blocks**, roughly 182 days at nominal block time. On SDK 1.0.1+, the seed uses `ExpirationTime.max()` for the longest lifetime from the landing block, without manual subtraction. An over-maximum request fails before sending with `InvalidExpiryError`. The earlier peer version could instead send and revert with `ExpiryBeyondMaxLifetime`. A below-maximum inclusion margin was needed only for SDK `1\u002e0\u002e0` maximum-lifetime guidance. Longer availability requires **Lifetime Extension**. Actual expiry is a block number, not a wall-clock guarantee."
