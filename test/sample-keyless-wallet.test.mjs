@@ -14,12 +14,12 @@ test('sample wallet code offers only the keyless Rabdi RPC', async () => {
   assert.doesNotMatch(wallet, /access key from hub|own access key/i);
 });
 
-test('sample copy never tells users to put an access key in their wallet', async () => {
-  const [html, readme, agents] = await Promise.all(['../sample/index.html', '../sample/README.md', '../sample/AGENTS.md'].map(read));
-  for (const text of [html, readme, agents]) {
-    assert.doesNotMatch(text, /wallet with your own|own access key|own authorized RPC|visitors configure their own RPC/i);
+test('sample and package copy never tell users to put an access key in their wallet', async () => {
+  const [html, readme, agents, rootReadme, rootAgents] = await Promise.all(['../sample/index.html', '../sample/README.md', '../sample/AGENTS.md', '../README.md', '../AGENTS.md'].map(read));
+  for (const text of [html, readme, agents, rootReadme, rootAgents]) {
+    assert.doesNotMatch(text, /wallet with your own|own access key|own authorized (Rabdi |wallet )?RPC|own provider URL|visitors configure their own/i);
     assert.doesNotMatch(text, /rpc\.rabdi\.db-chain\.testnet\.arkiv\.network\/(?![`'"\s)])/, 'no keyed RPC URL literal');
   }
-  for (const doc of [readme, agents]) assert.match(doc, /https:\/\/rpc\.rabdi\.db-chain\.testnet\.arkiv\.network`/);
+  for (const doc of [readme, agents, rootReadme, rootAgents]) assert.match(doc, /https:\/\/rpc\.rabdi\.db-chain\.testnet\.arkiv\.network`/);
   assert.match(html, /keyless public RPC/);
 });
