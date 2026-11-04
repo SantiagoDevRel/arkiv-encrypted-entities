@@ -11,10 +11,18 @@ export interface Provider {
   isMetaMask?: boolean;
 }
 export class UserError extends Error {}
-// SDK metadata only: no request uses this placeholder URL or a bundled access key.
+/**
+ * The only RPC URL this sample offers to a wallet: Rabdi's keyless public endpoint.
+ * Access keys stay server-side (`/api/rpc`); they never go into a wallet, the bundle, a URL or a QR.
+ */
+export const RABDI_PUBLIC_RPC = 'https://rpc.rabdi.db-chain.testnet.arkiv.network';
+// SDK metadata only: reads use /api/rpc and sends use the injected wallet, so no request uses this URL.
 // Receipt polling uses only latest head numbers and the submitted hash. Replacements require manual reconciliation.
-export const chain = { ...rabdi({ accessKey: 'wallet-configured' }), supportsTransactionReplacementDetection: false } as const;
+export const chain = { ...rabdi({ accessKey: 'wallet-configured' }), rpcUrls: { default: { http: [RABDI_PUBLIC_RPC] } }, supportsTransactionReplacementDetection: false } as const;
 export const EXPLORER_URL = 'https://rabdi.explorer.arkiv.network';
+export function rabdiAddChainParams() {
+  return { chainId: `0x${chain.id.toString(16)}`, chainName: 'Rabdi', nativeCurrency: { name: 'Golem', symbol: 'tGLM', decimals: 18 }, rpcUrls: [RABDI_PUBLIC_RPC], blockExplorerUrls: [EXPLORER_URL] };
+}
 const announced: Provider[] = [];
 window.addEventListener('eip6963:announceProvider', event => {
   const p = (event as CustomEvent<{ provider: Provider }>).detail?.provider;
@@ -35,11 +43,12 @@ export async function connect(p: Provider): Promise<Hex> {
   const accounts = await p.request({ method: 'eth_requestAccounts' }) as string[];
   if (!accounts[0] || !/^0x[0-9a-fA-F]{40}$/.test(accounts[0])) throw new UserError('The wallet did not share an account.');
   if (Number(await p.request({ method: 'eth_chainId' })) !== chain.id) {
-    // Visitors configure their own authorized RPC in the wallet. Never add a server key to a wallet.
+    // A wallet without Rabdi is offered only the keyless public RPC. Never add an access key to a wallet.
     try { await p.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: `0x${chain.id.toString(16)}` }] }); }
     catch (error) {
-      if ((error as { code?: number }).code === 4902) throw new UserError('Configure Rabdi (7794095) in your wallet using your own access key from hub.arkiv.network/access-keys, then reconnect.');
-      throw error;
+      if ((error as { code?: number }).code !== 4902) throw error;
+      await p.request({ method: 'wallet_addEthereumChain', params: [rabdiAddChainParams()] });
+      await p.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: `0x${chain.id.toString(16)}` }] });
     }
   }
   await assertSession(p, accounts[0] as Hex);

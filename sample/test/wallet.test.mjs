@@ -50,8 +50,23 @@ for(const tx of [{from:target,to:target,data:'0x1234'},{from:account,to:account,
 }
 test('wallet rejection propagates without sending',async()=>{const f=fixture({reject:true});await assert.rejects(connect(f.provider),{code:4001});assert.equal(f.sent.length,0);});
 test('connected Rabdi session validates',async()=>{const f=fixture();assert.equal(await connect(f.provider),account);await assertSession(f.provider,account);});
-test('unknown Rabdi network asks user to configure own wallet RPC, without exposing a server key',async()=>{
-  const calls=[];
-  const p={request:async args=>{calls.push(args);if(args.method==='eth_requestAccounts')return [account];if(args.method==='eth_chainId')return '0x1';if(args.method==='wallet_switchEthereumChain')throw {code:4902};throw Error('unexpected');}};
-  await assert.rejects(connect(p),/Configure Rabdi/);assert.equal(calls.some(c=>c.method==='wallet_addEthereumChain'),false);
+test('unknown Rabdi network is added with only the keyless public RPC, never a keyed URL',async()=>{
+  const calls=[];let walletChain='0x1',added=false;
+  const p={request:async args=>{calls.push(args);
+    if(args.method==='eth_requestAccounts'||args.method==='eth_accounts')return [account];
+    if(args.method==='eth_chainId')return walletChain;
+    if(args.method==='wallet_switchEthereumChain'){if(!added)throw {code:4902};walletChain='0x76edaf';return null;}
+    if(args.method==='wallet_addEthereumChain'){added=true;return null;}
+    throw Error('unexpected');}};
+  assert.equal(await connect(p),account);
+  const adds=calls.filter(c=>c.method==='wallet_addEthereumChain');assert.equal(adds.length,1);
+  const [params]=adds[0].params;assert.equal(params.chainId,'0x76edaf');
+  assert.deepEqual(params.rpcUrls,['https://rpc.rabdi.db-chain.testnet.arkiv.network']);
+  for(const url of params.rpcUrls){const u=new URL(url);assert.equal(u.pathname,'/');assert.equal(u.search+u.hash+u.username+u.password,'');}
+  assert.deepEqual(chain.rpcUrls.default.http,['https://rpc.rabdi.db-chain.testnet.arkiv.network']);
+});
+test('a wallet that already has Rabdi is only switched, never re-added',async()=>{
+  const calls=[];let walletChain='0x1';
+  const p={request:async args=>{calls.push(args);if(args.method==='eth_requestAccounts'||args.method==='eth_accounts')return [account];if(args.method==='eth_chainId')return walletChain;if(args.method==='wallet_switchEthereumChain'){walletChain='0x76edaf';return null;}throw Error('unexpected');}};
+  assert.equal(await connect(p),account);assert.equal(calls.some(c=>c.method==='wallet_addEthereumChain'),false);
 });

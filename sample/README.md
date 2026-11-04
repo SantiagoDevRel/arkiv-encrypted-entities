@@ -28,7 +28,7 @@ Deploy only the `.vercelignore` allowlist: built `dist`, `api`, package manifest
 
 ## Create a note
 
-1. Configure **Rabdi, chain 7794095**, in your wallet with your own authorized RPC from the access-key page. The sample never adds the server's URL or key to a wallet. Click **Connect wallet**; the sample switches to an existing Rabdi network and verifies account/network. Rabby is preferred if both Rabby and MetaMask are installed.
+1. Click **Connect wallet**. The sample switches to **Rabdi, chain 7794095**; if the wallet does not have it, the sample asks the wallet to add it with the keyless public RPC `https://rpc.rabdi.db-chain.testnet.arkiv.network`. To add Rabdi by hand, use that same URL. Never put an access key or a keyed RPC URL in a wallet: access keys stay server-side. The sample then verifies account/network. Rabby is preferred if both Rabby and MetaMask are installed.
 2. Obtain test GLM from the [faucet](https://hub.arkiv.network/faucet). Keep the displayed account under the header in view.
 3. Use a non-sensitive note. Generate an independent key; reveal it only to save a private backup. A wallet private key, seed phrase, password or signature is not an encryption key. Confirm the backup checkbox.
 4. Click **Encrypt & store**. The browser encrypts first, then the SDK constructs a schema-based create. The wallet transport estimates the exact unsigned calldata at `latest`, sets `gas = max(1,000,000, 2 * estimate)` plus explicit `gasPrice` and latest nonce, and rechecks the session. It rejects gas above half the head block limit. No estimate means no send.
@@ -58,7 +58,7 @@ Public links accept `?entity=0x...` only. Never include keys in URLs. The entity
 
 ## Failure and confirmation handling
 
-- Missing wallet/rejected connection: explain the problem; reading remains available. Unknown wallet network: configure Rabdi with your own access key, then reconnect.
+- Missing wallet/rejected connection: explain the problem; reading remains available. Unknown wallet network: the sample asks the wallet to add Rabdi with the keyless public RPC; if you decline, add it by hand with that URL, then reconnect.
 - State reads use `latest`. Rabdi rejects `safe`, `finalized` and historical state with “arkiv serves state at the chain head only”.
 - Each distinct note/key/account combination keeps one operation state in page memory across clicks. `sending` is set before network calls; re-entry is blocked. SDK success stores `submitted(hash)` before an independent receipt lookup. Null/timeout/disagreeing receipts show a typed outcome and hash without resending.
 - An uncertain SDK failure blocks that operation. One retry is allowed only when the SDK reports a confirmed revert and an authoritative receipt shows `gasUsed == sent gas`. Retry gas is at least twice the previous gas and twice a fresh estimate, still below half the head limit. Other reverts stop after one send; at most two sends are possible.
