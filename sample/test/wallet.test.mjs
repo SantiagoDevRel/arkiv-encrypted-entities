@@ -65,6 +65,45 @@ test('unknown Rabdi network is added with only the keyless public RPC, never a k
   for(const url of params.rpcUrls){const u=new URL(url);assert.equal(u.pathname,'/');assert.equal(u.search+u.hash+u.username+u.password,'');}
   assert.deepEqual(chain.rpcUrls.default.http,['https://rpc.rabdi.db-chain.testnet.arkiv.network']);
 });
+// MetaMask Mobile wraps EIP-3326 4902 in -32603 (data.originalError.code, originalError.code or only the message).
+function switchFailingWallet(makeError){
+  const calls=[];let walletChain='0x1',added=false;
+  const p={request:async args=>{calls.push(args);
+    if(args.method==='eth_requestAccounts'||args.method==='eth_accounts')return [account];
+    if(args.method==='eth_chainId')return walletChain;
+    if(args.method==='wallet_switchEthereumChain'){if(!added)throw makeError();walletChain='0x76edaf';return null;}
+    if(args.method==='wallet_addEthereumChain'){added=true;return null;}
+    throw Error('unexpected');}};
+  return {p,calls,chain:()=>walletChain};
+}
+for(const [name,makeError] of [
+  ['data.originalError.code 4902',()=>Object.assign(new Error('Internal JSON-RPC error.'),{code:-32603,data:{originalError:{code:4902}}})],
+  ['originalError.code 4902',()=>Object.assign(new Error('Internal JSON-RPC error.'),{code:-32603,originalError:{code:4902}})],
+  ['"Unrecognized chain ID" message',()=>Object.assign(new Error('Unrecognized chain ID "0x76edaf". Try adding the chain using wallet_addEthereumChain first.'),{code:-32603})],
+]){
+  test(`a wallet that wraps 4902 as -32603 (${name}) gets the keyless add, a switch and a confirmed session`,async()=>{
+    const w=switchFailingWallet(makeError);
+    assert.equal(await connect(w.p),account);
+    assert.equal(w.chain(),'0x76edaf');
+    const adds=w.calls.filter(c=>c.method==='wallet_addEthereumChain');assert.equal(adds.length,1);
+    assert.equal(adds[0].params[0].chainId,'0x76edaf');
+    assert.deepEqual(adds[0].params[0].rpcUrls,['https://rpc.rabdi.db-chain.testnet.arkiv.network']);
+    assert.deepEqual(w.calls.map(c=>c.method).filter(m=>m.startsWith('wallet_')),['wallet_switchEthereumChain','wallet_addEthereumChain','wallet_switchEthereumChain']);
+  });
+}
+for(const [name,error] of [
+  ['bare -32603',Object.assign(new Error('Internal JSON-RPC error.'),{code:-32603})],
+  ['-32603 wrapping 4001',Object.assign(new Error('Internal JSON-RPC error.'),{code:-32603,data:{originalError:{code:4001}}})],
+  ['4001 user rejection',Object.assign(new Error('User rejected the request.'),{code:4001})],
+  ['-32002 pending request',Object.assign(new Error('Request already pending'),{code:-32002})],
+]){
+  test(`an unrelated switch error (${name}) is rethrown and never adds a network`,async()=>{
+    const w=switchFailingWallet(()=>error);
+    await assert.rejects(connect(w.p),thrown=>thrown===error);
+    assert.equal(w.calls.some(c=>c.method==='wallet_addEthereumChain'),false);
+    assert.equal(w.chain(),'0x1');
+  });
+}
 test('a wallet that already has Rabdi is only switched, never re-added',async()=>{
   const calls=[];let walletChain='0x1';
   const p={request:async args=>{calls.push(args);if(args.method==='eth_requestAccounts'||args.method==='eth_accounts')return [account];if(args.method==='eth_chainId')return walletChain;if(args.method==='wallet_switchEthereumChain'){walletChain='0x76edaf';return null;}throw Error('unexpected');}};
