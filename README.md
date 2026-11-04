@@ -2,7 +2,7 @@
 
 Encrypt binary data locally with AES-256-GCM for a `bytes` column. Attributes stay public. Indexed public columns remain queryable; encrypted content cannot be filtered. The package uses WebCrypto and does not sign transactions or replace the Arkiv SDK.
 
-**arkiv-encryption 1.1.1 · Rabdi testnet.** Encrypt binary data for a `bytes` column; attributes stay public. The wallet sample pins exact registry 1.1.1 independently of the library API documented here.
+**arkiv-encryption 1.1.2 · Rabdi testnet.** Encrypt binary data for a `bytes` column; attributes stay public. The wallet sample pins exact registry 1.1.1 independently of the library API documented here; 1.1.2 changes only documentation and the exported `VERSION` string.
 
 - [npm](https://www.npmjs.com/package/arkiv-encryption)
 - [Source](https://github.com/SantiagoDevRel/arkiv-encrypted-entities)
@@ -14,10 +14,10 @@ Agents must explicitly open this README and `node_modules/arkiv-encryption/AGENT
 
 Node.js 22+ and WebCrypto are required. Crypto needs no wallet, funds, access key or SDK at runtime. The optional SDK peer is `^1.0.0`; the integration is verified with 1.0.1. The crypto API and v1 envelope remain compatible with 0.1.0.
 
-Install version 1.1.1:
+Install version 1.1.2:
 
 ```sh
-npm install --save-exact arkiv-encryption@1.1.1
+npm install --save-exact arkiv-encryption@1.1.2
 ```
 
 ```js
