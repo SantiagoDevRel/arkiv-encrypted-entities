@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.2
+
+- Documentation only; library code is unchanged apart from the `VERSION` string.
+- The npm README and AGENTS now carry the keyless wallet guidance: wallets get only the public Rabdi RPC `https://rpc.rabdi.db-chain.testnet.arkiv.network`, and access keys stay server-side.
+- The release tag carries the sample fix that adds Rabdi to wallets with the keyless RPC only (PR #10).
+
 ## 1.1.1
 
 - Verify the optional SDK `^1.0.0` peer with 1.0.1 and pin development and the sample SDK to 1.0.1.
